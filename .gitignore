@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# Directories
+.cache/
+.vscode/
+.idea/
+build/
+install/
+log/
