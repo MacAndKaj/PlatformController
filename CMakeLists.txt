@@ -11,9 +11,9 @@ include(cmake/CMakeLibraries.cmake)
 
 # find dependencies
 
-add_executable(${NODE_NAME} src/main.cpp)
-
 add_subdirectory(src)
+
+add_executable(${NODE_NAME} src/main.cpp)
 
 target_link_libraries(${NODE_NAME}
     PUBLIC platform_controller_init

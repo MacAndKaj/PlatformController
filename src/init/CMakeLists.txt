@@ -9,9 +9,17 @@ file(GLOB SOURCES
     ${HEADERS_DIR}/platform_controller/init/Context.hpp
     ${HEADERS_DIR}/platform_controller/init/IContext.hpp
     ${HEADERS_DIR}/platform_controller/init/PlatformControllerNode.hpp
+    ${HEADERS_DIR}/platform_controller/init/IRosCom.hpp
+    ${HEADERS_DIR}/platform_controller/init/RosCom.hpp
+
+    ${HEADERS_DIR}/platform_controller/controllers/IHandler.hpp
+    ${HEADERS_DIR}/platform_controller/controllers/SetPlatformSpeedHandler.hpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Context.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PlatformControllerNode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/RosCom.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/controllers/SetPlatformSpeedHandler.cpp
 )
 
 add_library(${LIBRARY_NAME} ${SOURCES})
@@ -19,9 +27,10 @@ add_library(${LIBRARY_NAME} ${SOURCES})
 target_include_directories(${LIBRARY_NAME}
     # INTERNAL INCLUDES
     PUBLIC ${HEADERS_DIR}
-
+    
     # EXTERNAL INCLUDES
     PUBLIC ${rclcpp_INCLUDE_DIRS}
+    PUBLIC ${motoros_interfaces_INCLUDE_DIRS}
 )
 
 target_link_libraries(${LIBRARY_NAME}
@@ -30,4 +39,5 @@ target_link_libraries(${LIBRARY_NAME}
 
     # EXTERNAL LIBRARIES
     PUBLIC ${rclcpp_LIBRARIES}
+    PUBLIC ${motoros_interfaces_LIBRARIES}
 )

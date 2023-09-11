@@ -6,6 +6,8 @@
 
 #include <platform_controller/init/IContext.hpp>
 
+#include <platform_controller/init/IRosCom.hpp>
+
 #include <memory>
 
 namespace platform_controller::init
@@ -14,12 +16,21 @@ namespace platform_controller::init
 class Context : public IContext
 {
 public:
-    Context() = default;
+    explicit Context(rclcpp::Node& current_node);
     virtual ~Context() = default;
+
+    void setRosCom(std::unique_ptr<IRosCom> roscom) override;
+    IRosCom& getRosCom() override;
+    
     void setup(const std::vector<rclcpp::Parameter>& parameters) override;
+    
     transport::ITransportProxy& getTransportProxy() override;
 
+    rclcpp::Logger createLogger(const std::string& name) override;
+
 private:
+    rclcpp::Node& m_current_node;
+    std::unique_ptr<IRosCom> m_roscom;
     std::unique_ptr<transport::ITransportProxy> m_transport_proxy;
 };
 

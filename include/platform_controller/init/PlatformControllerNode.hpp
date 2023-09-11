@@ -6,9 +6,12 @@
 
 #include <platform_controller/init/IContext.hpp>
 
+#include <platform_controller/init/controllers/IHandler.hpp>
+
 #include <rclcpp/rclcpp.hpp>
 
 #include <memory>
+#include <vector>
 
 namespace platform_controller::init
 {
@@ -16,14 +19,15 @@ namespace platform_controller::init
 class PlatformControllerNode : public rclcpp::Node
 {
 public:
-    PlatformControllerNode(const std::string& node_name, std::shared_ptr<IContext> context);
+    explicit PlatformControllerNode(const std::string& node_name);
     virtual ~PlatformControllerNode() = default;
+    void setContext(std::shared_ptr<IContext>);
     void setup();
 
 private:
     rclcpp::Logger m_node_logger;
-
     std::shared_ptr<IContext> m_context;
+    std::vector<std::shared_ptr<controllers::IHandler>> m_controllers;
 };
 
 } // namespace platform_controller::init

@@ -11,6 +11,21 @@
 namespace platform_controller::init
 {
 
+Context::Context(rclcpp::Node& current_node)
+    : m_current_node(current_node)
+{
+}
+
+void Context::setRosCom(std::unique_ptr<IRosCom> roscom)
+{
+    m_roscom = std::move(roscom);
+}
+
+IRosCom& Context::getRosCom()
+{
+    return *m_roscom;
+}
+
 void Context::setup(const std::vector<rclcpp::Parameter>& parameters)
 {
     for (const auto& param : parameters)
@@ -20,13 +35,17 @@ void Context::setup(const std::vector<rclcpp::Parameter>& parameters)
             m_transport_proxy= std::make_unique<transport::SpiProxy>(param.as_string());
         }
     }
-    
 }
 
 transport::ITransportProxy& Context::getTransportProxy()
 {
     if (!m_transport_proxy) throw std::runtime_error("Context not initialized");
     return *m_transport_proxy;
+}
+
+rclcpp::Logger Context::createLogger(const std::string& name)
+{
+    return m_current_node.get_logger().get_child(name);
 }
 
 } // namespace platform_controller::init
