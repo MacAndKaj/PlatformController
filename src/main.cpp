@@ -22,6 +22,7 @@ int main(int argc, char ** argv)
     context->setRosCom(std::move(roscom));
 
     node->setContext(context);
+    node->setup();
     rclcpp::spin(node);
 
     rclcpp::shutdown();

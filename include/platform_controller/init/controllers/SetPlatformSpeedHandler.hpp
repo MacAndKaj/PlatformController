@@ -25,6 +25,7 @@ protected:
 private:
     rclcpp::Logger m_logger;
     std::shared_ptr<rclcpp::SubscriptionBase> m_subscription;
+    transport::ITransportProxy& m_proxy;
 };
 
 } // namespace platform_controller::init::controllers
