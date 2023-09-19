@@ -4,6 +4,9 @@
 #include <platform_controller/init/controllers/SetPlatformSpeedHandler.hpp>
 
 #include <platform_controller/init/IContext.hpp>
+#include <platform_controller/syscom/defs/Messages.hpp>
+
+#include <cmath>
 
 namespace platform_controller::init::controllers
 {
@@ -12,7 +15,7 @@ SetPlatformSpeedHandler::SetPlatformSpeedHandler(IContext& context)
     : m_logger(context.createLogger("SetPlatformSpeedHandler"))
     , m_subscription(context.getRosCom().subscribeForSetPlatformSpeed(
         std::bind(&SetPlatformSpeedHandler::handle, this, std::placeholders::_1)))
-    , m_proxy(context.getTransportProxy())
+    , m_syscom(context.getSysCom())
 {
     RCLCPP_INFO(m_logger, "SetPlatformSpeedHandler waiting for messages");
 }
@@ -20,9 +23,20 @@ SetPlatformSpeedHandler::SetPlatformSpeedHandler(IContext& context)
 void SetPlatformSpeedHandler::handle(const motoros_interfaces::msg::SetPlatformSpeed& msg)
 {
     RCLCPP_INFO(m_logger, "Received SetPlatformSpeed - %f[left] | %f[right]", msg.l_speed, msg.r_speed);
-    if (not m_proxy.send())
+    PlatformSetMotorSpeedReq req{};
+
+    float integer_part;
+    float float_part = std::modf(msg.l_speed, &integer_part);
+    req.lSpeedF = static_cast<std::uint8_t>(std::fabs(std::round(float_part*100))); 
+    req.lSpeedI = static_cast<std::int8_t>(integer_part); 
+
+    float_part = std::modf(msg.r_speed, &integer_part);
+    req.rSpeedF = static_cast<std::uint8_t>(std::fabs(std::round(float_part*100))); 
+    req.rSpeedI = static_cast<std::int8_t>(integer_part); 
+
+    if (not m_syscom.send(req))
     {
-        RCLCPP_ERR(m_logger, "Received SetPlatformSpeed - %f[left] | %f[right]", msg.l_speed, msg.r_speed);
+        RCLCPP_ERROR(m_logger, "Error while sendind data to platform!");
     }
 }
 

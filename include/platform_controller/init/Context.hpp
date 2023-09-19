@@ -22,6 +22,9 @@ public:
     void setRosCom(std::unique_ptr<IRosCom> roscom) override;
     IRosCom& getRosCom() override;
     
+    void setSysCom(std::unique_ptr<syscom::ISysCom> syscom) override;
+    syscom::ISysCom& getSysCom() override;
+    
     void setup(const std::vector<rclcpp::Parameter>& parameters) override;
     
     transport::ITransportProxy& getTransportProxy() override;
@@ -31,6 +34,7 @@ public:
 private:
     rclcpp::Node& m_current_node;
     std::unique_ptr<IRosCom> m_roscom;
+    std::unique_ptr<syscom::ISysCom> m_syscom;
     std::unique_ptr<transport::ITransportProxy> m_transport_proxy;
 };
 

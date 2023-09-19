@@ -26,6 +26,16 @@ IRosCom& Context::getRosCom()
     return *m_roscom;
 }
 
+void Context::setSysCom(std::unique_ptr<syscom::ISysCom> syscom)
+{
+    m_syscom = std::move(syscom);
+}
+
+syscom::ISysCom& Context::getSysCom()
+{
+    return *m_syscom;
+}
+
 void Context::setup(const std::vector<rclcpp::Parameter>& parameters)
 {
     for (const auto& param : parameters)
