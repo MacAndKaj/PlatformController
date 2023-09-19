@@ -19,7 +19,9 @@ jobs:
 
     - name: Configure Environment
       shell: bash
-      run: source /opt/ros/humble/setup.bash && source /home/user/install/setup.bash
+      run: |
+          source /opt/ros/humble/setup.bash >> $GITHUB_ENV
+          source /home/user/install/setup.bash >> $GITHUB_ENV
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
