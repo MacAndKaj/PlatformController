@@ -1,4 +1,4 @@
-name: CMake on multiple platforms
+name: Build x86 package
 
 on:
   push:
@@ -11,18 +11,19 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-        image: macandkaj/motoros:development-3-8cc8e127ee43
+        image: macandkaj/motoros:development-5-55b863e3102a
         
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Configure Environment
-      run: source /opt/ros/humble/setup.bash && source /home/user/install/setup.bash
-
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: colcon build --packages-select platform_controller
+      shell: bash
+      run: |
+          source /mh_entrypoint.sh
+          env
+          colcon build --packages-select platform_controller
 
     # - name: Test
     #   working-directory: ${{ steps.strings.outputs.build-output-dir }}
