@@ -1,4 +1,4 @@
-name: CMake on multiple platforms
+name: Build x86 package
 
 on:
   push:
@@ -20,7 +20,10 @@ jobs:
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       shell: bash
-      run: colcon build --packages-select platform_controller
+      run: |
+          source /mh_entrypoint.sh
+          env
+          colcon build --packages-select platform_controller
 
     # - name: Test
     #   working-directory: ${{ steps.strings.outputs.build-output-dir }}
