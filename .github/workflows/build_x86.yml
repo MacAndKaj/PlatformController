@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-        image: macandkaj/motoros:development-3-8cc8e127ee43
+        image: macandkaj/motoros:development-4-071e4a426948
         
 
     steps:
