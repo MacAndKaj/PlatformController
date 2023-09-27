@@ -29,9 +29,11 @@ file(GLOB SOURCES
     # HEADERS
     ${HEADERS_DIR}/platform_controller/syscom/ISysCom.hpp
     ${HEADERS_DIR}/platform_controller/syscom/SysCom.hpp
+    ${HEADERS_DIR}/platform_controller/syscom/codecs/PlatformSetMotorSpeedSerDes.hpp
 
     # SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/SysCom.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/codecs/PlatformSetMotorSpeedSerDes.cpp
 )
 
 add_library(${PROJECT_NAME} ${SOURCES})

@@ -23,6 +23,7 @@ void Context::setRosCom(std::unique_ptr<IRosCom> roscom)
 
 IRosCom& Context::getRosCom()
 {
+    if (!m_roscom) throw std::runtime_error("Context not initialized - set RosCom");
     return *m_roscom;
 }
 
@@ -33,6 +34,7 @@ void Context::setSysCom(std::unique_ptr<syscom::ISysCom> syscom)
 
 syscom::ISysCom& Context::getSysCom()
 {
+    if (!m_syscom) throw std::runtime_error("Context not initialized - set SysCom");
     return *m_syscom;
 }
 
@@ -49,7 +51,7 @@ void Context::setup(const std::vector<rclcpp::Parameter>& parameters)
 
 transport::ITransportProxy& Context::getTransportProxy()
 {
-    if (!m_transport_proxy) throw std::runtime_error("Context not initialized");
+    if (!m_transport_proxy) throw std::runtime_error("Context not initialized - set TransportProxy");
     return *m_transport_proxy;
 }
 
