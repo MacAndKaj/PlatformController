@@ -16,8 +16,11 @@ add_library(${LIBRARY_NAME} ${SOURCES})
 
 target_include_directories(${LIBRARY_NAME}
     PUBLIC ${HEADERS_DIR}
+    PUBLIC ${rclcpp_INCLUDE_DIRS}
+    PUBLIC ${motoros_interfaces_INCLUDE_DIRS}
 )
 
 target_link_libraries(${LIBRARY_NAME}
     PUBLIC ${rclcpp_LIBRARIES}
+    PUBLIC ${motoros_interfaces_LIBRARIES}
 )

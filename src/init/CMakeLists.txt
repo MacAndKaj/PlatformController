@@ -36,6 +36,7 @@ target_include_directories(${LIBRARY_NAME}
 target_link_libraries(${LIBRARY_NAME}
     # INTERNAL LIBRARIES
     PUBLIC platform_controller_transport
+    PUBLIC platform_controller_syscom
 
     # EXTERNAL LIBRARIES
     PUBLIC ${rclcpp_LIBRARIES}

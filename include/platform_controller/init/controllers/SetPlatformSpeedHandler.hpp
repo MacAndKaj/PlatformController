@@ -7,6 +7,7 @@
 #include <platform_controller/init/controllers/IHandler.hpp>
 
 #include <platform_controller/init/IContext.hpp>
+#include <platform_controller/syscom/ISysCom.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -25,7 +26,7 @@ protected:
 private:
     rclcpp::Logger m_logger;
     std::shared_ptr<rclcpp::SubscriptionBase> m_subscription;
-    transport::ITransportProxy& m_proxy;
+    syscom::ISysCom& m_syscom;
 };
 
 } // namespace platform_controller::init::controllers

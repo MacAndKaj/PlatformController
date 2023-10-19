@@ -6,6 +6,10 @@
 
 #include <platform_controller/transport/ITransportProxy.hpp>
 
+#include <platform_controller/init/IContext.hpp>
+
+#include <rclcpp/rclcpp.hpp>
+
 #include <linux/spi/spi.h>
 
 #include <cstdint>
@@ -19,12 +23,13 @@ namespace platform_controller::transport
 class SpiProxy : public ITransportProxy
 {
 public:
-    SpiProxy(const std::string& device_path);
+    SpiProxy(init::IContext& context, const std::string& device_path);
     virtual ~SpiProxy();
     void spi_read_reg8(std::uint8_t reg);
     bool send(const std::vector<std::uint8_t>& data) override;
 
 private:
+    rclcpp::Logger m_logger;
     int m_fd{-1};
     const std::string m_device_path;
     static constexpr int s_m_word_length_bits{8};
