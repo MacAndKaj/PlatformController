@@ -16,16 +16,18 @@ int main(int argc, char ** argv)
         "PlatformController"
     );
 
-    auto roscom = std::make_unique<platform_controller::init::RosCom>(*node);
 
     std::shared_ptr<platform_controller::init::IContext> context = 
         std::make_shared<platform_controller::init::Context>(*node);
-    auto syscom = std::make_unique<platform_controller::syscom::SysCom>(*context);
-
-    context->setRosCom(std::move(roscom));
-    context->setSysCom(std::move(syscom));
 
     node->setContext(context);
+
+    auto roscom = std::make_unique<platform_controller::init::RosCom>(*node);
+    context->setRosCom(std::move(roscom));
+    
+    auto syscom = std::make_unique<platform_controller::syscom::SysCom>(*context);
+    context->setSysCom(std::move(syscom));
+
     node->setup();
     rclcpp::spin(node);
 

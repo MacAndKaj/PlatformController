@@ -44,7 +44,8 @@ void Context::setup(const std::vector<rclcpp::Parameter>& parameters)
     {
         if (param.get_name() == "transport_device_name")
         {
-            m_transport_proxy= std::make_unique<transport::SpiProxy>(param.as_string());
+            RCLCPP_INFO(m_current_node.get_logger(), "Creating SpiProxy");
+            m_transport_proxy= std::make_unique<transport::SpiProxy>( *this, param.as_string());
         }
     }
 }
