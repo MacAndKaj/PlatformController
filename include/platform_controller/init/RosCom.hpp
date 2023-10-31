@@ -19,7 +19,9 @@ public:
     explicit RosCom(rclcpp::Node& current_node);
     virtual ~RosCom() = default;
     Subscriber subscribeForSetPlatformSpeed(
-        const std::function<void(const motoros_interfaces::msg::SetPlatformSpeed&)>& callback) const;
+        const std::function<void(const motoros_interfaces::msg::SetPlatformSpeed&)>& callback) override;
+    Subscriber subscribeForSetPlatformPwmValue(
+        const std::function<void(const motoros_interfaces::msg::SetPlatformPwmValue&)>& callback) override;
 
 private:
     rclcpp::Node& m_current_node;

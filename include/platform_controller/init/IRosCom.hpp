@@ -5,6 +5,7 @@
 #define PLATFORM_CONTROLLER_INIT_IROSCOM_HPP_
 
 #include <motoros_interfaces/msg/set_platform_speed.hpp>
+#include <motoros_interfaces/msg/set_platform_pwm_value.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -20,8 +21,9 @@ class IRosCom
 public:
     virtual ~IRosCom() = default;
     virtual Subscriber subscribeForSetPlatformSpeed(
-        const std::function<void(const motoros_interfaces::msg::SetPlatformSpeed&)>& callback) const = 0;
-    
+        const std::function<void(const motoros_interfaces::msg::SetPlatformSpeed&)>& callback) = 0;
+    virtual Subscriber subscribeForSetPlatformPwmValue(
+        const std::function<void(const motoros_interfaces::msg::SetPlatformPwmValue&)>& callback) = 0;
 };
 
 } // namespace platform_controller::init
