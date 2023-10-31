@@ -14,6 +14,7 @@ class ISysCom
 public:
     virtual ~ISysCom() = default;
     virtual bool send(const PlatformSetMotorSpeedReq& msg) = 0;
+    virtual bool send(const PlatformSetMotorPwmValueReq& msg) = 0;
 };
 
 } // namespace platform_controller::syscom

@@ -7,6 +7,7 @@
 #include <platform_controller/init/IContext.hpp>
 #include <platform_controller/syscom/defs/Messages.hpp>
 #include <platform_controller/syscom/codecs/PlatformSetMotorSpeedSerDes.hpp>
+#include <platform_controller/syscom/codecs/PlatformSetMotorPwmValueSerDes.hpp>
 #include <platform_controller/transport/ITransportProxy.hpp>
 
 namespace platform_controller::syscom
@@ -22,6 +23,19 @@ SysCom::SysCom(init::IContext& context)
 bool SysCom::send(const PlatformSetMotorSpeedReq& msg)
 {
     std::vector<std::uint8_t> bytes = codecs::PlatformSetMotorSpeedSerDes::serialize(msg);
+    
+    if (not m_proxy.send(bytes))
+    {
+        RCLCPP_ERROR(m_logger, "Error while sendind data!");
+        return false;
+    }
+
+    return true;
+}
+
+bool SysCom::send(const PlatformSetMotorPwmValueReq& msg)
+{
+    std::vector<std::uint8_t> bytes = codecs::PlatformSetMotorPwmValueSerDes::serialize(msg);
     
     if (not m_proxy.send(bytes))
     {

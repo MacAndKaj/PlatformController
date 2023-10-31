@@ -31,10 +31,13 @@
 *.out
 *.app
 
+# Leftovers
+*.core
+
 # Directories
 .cache/
 .vscode/
 .idea/
-build/
+build*/
 install/
 log/

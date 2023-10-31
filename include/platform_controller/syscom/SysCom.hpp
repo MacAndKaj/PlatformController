@@ -18,6 +18,7 @@ public:
     explicit SysCom(init::IContext& context);
     virtual ~SysCom() = default;
     bool send(const PlatformSetMotorSpeedReq& msg) override;
+    bool send(const PlatformSetMotorPwmValueReq& msg) override;
 
 private:
     rclcpp::Logger m_logger;
