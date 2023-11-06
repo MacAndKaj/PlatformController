@@ -5,6 +5,7 @@
 #include <platform_controller/init/PlatformControllerNode.hpp>
 
 #include <platform_controller/init/controllers/SetPlatformSpeedHandler.hpp>
+#include <platform_controller/init/controllers/SetPlatformPwmValueHandler.hpp>
 
 #include <map>
 #include <vector>
@@ -44,6 +45,7 @@ void PlatformControllerNode::setContext(std::shared_ptr<IContext> context)
 void PlatformControllerNode::setup()
 {
     m_controllers.emplace_back(std::make_shared<controllers::SetPlatformSpeedHandler>(*m_context));
+    m_controllers.emplace_back(std::make_shared<controllers::SetPlatformPwmValueHandler>(*m_context));
 }
 
 } // namespace platform_controller::init

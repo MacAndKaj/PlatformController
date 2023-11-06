@@ -13,12 +13,14 @@ file(GLOB SOURCES
     ${HEADERS_DIR}/platform_controller/init/RosCom.hpp
 
     ${HEADERS_DIR}/platform_controller/controllers/IHandler.hpp
+    ${HEADERS_DIR}/platform_controller/controllers/SetPlatformPwmValueHandler.hpp
     ${HEADERS_DIR}/platform_controller/controllers/SetPlatformSpeedHandler.hpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Context.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PlatformControllerNode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/RosCom.cpp
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/controllers/SetPlatformPwmValueHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/controllers/SetPlatformSpeedHandler.cpp
 )
 
