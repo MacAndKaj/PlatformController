@@ -42,6 +42,10 @@ public:
     /// @return Reference to actual transport proxy.
     virtual transport::ITransportProxy& getTransportProxy() = 0;
 
+    /// @brief Function returning reference to initialized logs transport proxy in current context.
+    /// @return Reference to actual logs transport proxy.
+    virtual transport::ITransportProxy& getLogsProxy() = 0;
+
     /// @brief Creates new logger with with node name extended with provided name.
     /// @param name String with logger name added to node prefix.
     /// @return New logger instance

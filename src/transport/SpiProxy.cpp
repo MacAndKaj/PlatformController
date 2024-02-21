@@ -154,4 +154,10 @@ bool SpiProxy::send(const std::vector<std::uint8_t>& data)
     return true;    
 }
 
+std::vector<std::byte> SpiProxy::read()
+{
+    // not implemented
+    return {};
+}
+
 } // namespace platform_controller::transport

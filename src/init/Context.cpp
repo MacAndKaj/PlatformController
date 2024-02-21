@@ -5,6 +5,7 @@
 #include <platform_controller/init/Context.hpp>
 
 #include <platform_controller/transport/SpiProxy.hpp>
+#include <platform_controller/transport/SerialProxy.hpp>
 
 #include <stdexcept>
 
@@ -42,18 +43,30 @@ void Context::setup(const std::vector<rclcpp::Parameter>& parameters)
 {
     for (const auto& param : parameters)
     {
-        if (param.get_name() == "transport_device_name")
+        if (param.get_name() == "spi_device_name")
         {
             RCLCPP_INFO(m_current_node.get_logger(), "Creating SpiProxy");
-            m_transport_proxy= std::make_unique<transport::SpiProxy>( *this, param.as_string());
+            m_transport_proxy = std::make_unique<transport::SpiProxy>( *this, param.as_string());
+        }
+
+        if (param.get_name() == "serial_device_name")
+        {
+            RCLCPP_INFO(m_current_node.get_logger(), "Creating SerialProxy");
+            m_logs_proxy = std::make_unique<transport::SerialProxy>( *this, param.as_string());
         }
     }
 }
 
 transport::ITransportProxy& Context::getTransportProxy()
 {
-    if (!m_transport_proxy) throw std::runtime_error("Context not initialized - set TransportProxy");
+    if (!m_transport_proxy) throw std::runtime_error("Context not initialized - set Transport Proxy");
     return *m_transport_proxy;
+}
+
+transport::ITransportProxy& Context::getLogsProxy()
+{
+    if (!m_logs_proxy) throw std::runtime_error("Context not initialized - set Logs Proxy");
+    return *m_logs_proxy;
 }
 
 rclcpp::Logger Context::createLogger(const std::string& name)

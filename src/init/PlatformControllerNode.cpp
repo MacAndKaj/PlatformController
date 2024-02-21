@@ -14,7 +14,7 @@ namespace platform_controller::init
 {
 
 static const std::map<std::string, rclcpp::ParameterType> ARGUMENTS = {
-    {"transport_device_name", rclcpp::ParameterType::PARAMETER_STRING},
+    {"spi_device_name", rclcpp::ParameterType::PARAMETER_STRING},
 };
 
 PlatformControllerNode::PlatformControllerNode(const std::string& node_name)

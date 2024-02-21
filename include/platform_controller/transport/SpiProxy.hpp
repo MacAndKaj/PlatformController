@@ -27,6 +27,7 @@ public:
     virtual ~SpiProxy();
     void spi_read_reg8(std::uint8_t reg);
     bool send(const std::vector<std::uint8_t>& data) override;
+    std::vector<std::byte> read() override;
 
 private:
     rclcpp::Logger m_logger;

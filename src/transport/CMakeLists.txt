@@ -7,8 +7,10 @@ set(HEADERS_DIR ${CMAKE_SOURCE_DIR}/include)
 
 file(GLOB SOURCES
     ${HEADERS_DIR}/platform_controller/transport/ITransportProxy.hpp
+    ${HEADERS_DIR}/platform_controller/transport/SerialProxy.hpp
     ${HEADERS_DIR}/platform_controller/transport/SpiProxy.hpp
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/SerialProxy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SpiProxy.cpp
 )
 
