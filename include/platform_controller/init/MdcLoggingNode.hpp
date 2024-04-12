@@ -11,6 +11,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <memory>
+#include <deque>
 #include <vector>
 
 namespace platform_controller::init
@@ -32,6 +33,7 @@ private:
     std::shared_ptr<IContext> m_context;
     rclcpp::TimerBase::SharedPtr m_node_timer;
     std::unique_ptr<workers::LoggingWorker> m_worker;
+    std::deque<char> m_log_queue;
 };
 
 } // namespace platform_controller::init

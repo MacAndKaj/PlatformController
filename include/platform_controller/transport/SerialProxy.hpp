@@ -10,6 +10,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include <termios.h>
+
 namespace platform_controller::transport
 {
 
@@ -25,6 +27,7 @@ private:
     rclcpp::Logger m_logger;
     const std::string m_device_path;
     int m_fd{-1};
+    struct termios m_previous_tty;
 };
 
 } // namespace platform_controller::transport

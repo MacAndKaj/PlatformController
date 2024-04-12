@@ -5,7 +5,6 @@
 
 #include <sys/ioctl.h>
 #include <fcntl.h>
-#include <termios.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -39,19 +38,30 @@ SerialProxy::SerialProxy(init::IContext& context, const std::string& device_path
         {
             throw std::runtime_error("SerialProxy error");
         }
+        m_previous_tty = tty;
 
-        tty.c_cflag = B9600 | CS8 | CLOCAL | CREAD;
-        tty.c_iflag = IGNPAR;
+        tty.c_iflag |= (PARMRK | INPCK);
+        tty.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | ISTRIP | IXON);
+
+        tty.c_cflag |= (CS8 | PARENB | CLOCAL | CREAD | CSTOPB);
+
+	    tty.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG | NOFLSH);
         tty.c_oflag = 0;
-        tty.c_lflag = 0;
+        
+        tty.c_cc[VMIN]  = 0;
+        tty.c_cc[VTIME] = 0;
 
-        if (tcflush(m_fd, TCIFLUSH) != 0)
+        if(cfsetispeed(&tty, B115200) != 0 || cfsetospeed(&tty, B115200) != 0)
         {
-            throw std::runtime_error("SerialProxy error");
+            throw std::runtime_error("Setting speed failed");
         }
 
-        if (tcsetattr(m_fd,TCSANOW, &tty) != 0)
+        if (tcsetattr(m_fd, TCSANOW, &tty) != 0)
         {
+            RCLCPP_ERROR(m_logger, "INPUT MODE FLAG: %d", tty.c_iflag);    
+            RCLCPP_ERROR(m_logger, "OUTPUT MODE FLAG: %d", tty.c_oflag);    
+            RCLCPP_ERROR(m_logger, "CONTROL MODE FLAG: %d", tty.c_cflag);    
+            RCLCPP_ERROR(m_logger, "LOCAL MODE FLAG: %d", tty.c_lflag);    
             throw std::runtime_error("SerialProxy error");
         }
     }
@@ -72,6 +82,7 @@ SerialProxy::~SerialProxy()
 {
     if (m_fd >= 0)
     {
+        tcsetattr(m_fd, TCSANOW, &m_previous_tty);
         close(m_fd);
     }
     RCLCPP_INFO(m_logger, "SerialProxy closed ");
@@ -85,34 +96,14 @@ bool SerialProxy::send([[maybe_unused]] const std::vector<std::uint8_t>& data)
 
 std::vector<std::byte> SerialProxy::read()
 {
-    int bytes_in_buffer = 0;
-    if (ioctl(m_fd, FIONREAD, &bytes_in_buffer) < 0)
-    {
-        int err_status = errno;
-        std::stringstream str;
-        str << "Cannot read available bytes. Failed with errno: (" 
-            << err_status << ") "
-            << std::strerror(err_status);
-        RCLCPP_ERROR(m_logger, str.str().c_str());
-        return {};
-    }
-    RCLCPP_INFO(m_logger, "Bytes in buffer %d", bytes_in_buffer);
-
-    std::shared_ptr<std::byte[]> buffer(new std::byte[bytes_in_buffer]);
-    int len  = ::read(m_fd, buffer.get(), bytes_in_buffer);
-    if (len != bytes_in_buffer)
-    {
-        RCLCPP_WARN(m_logger, "Read less bytes than expected");
-    }
-
+    constexpr size_t BUFFER_SIZE{256};
+    std::byte buffer[BUFFER_SIZE];
     std::vector<std::byte> output;
-    output.reserve(len);
-
-    for (int i = 0; i < len; ++i)
+    output.reserve(BUFFER_SIZE); // just for prealocation, logs shouldn't be longer, if slow increase
+    if (auto bytes_read = ::read(m_fd, buffer, BUFFER_SIZE); bytes_read > 0)
     {
-        output.emplace_back(buffer[i]);
+        output.insert(output.end(), buffer, buffer + bytes_read);
     }
-
     return output;
 }
 
