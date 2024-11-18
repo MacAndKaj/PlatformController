@@ -70,20 +70,18 @@ void MdcLoggingNode::work()
         m_log_queue.emplace_back(static_cast<char>(c));
     }
 
-    RCLCPP_INFO(m_node_logger, std::string(m_log_queue.begin(), m_log_queue.end()).c_str());
+    // RCLCPP_INFO(m_node_logger, std::string(m_log_queue.begin(), m_log_queue.end()).c_str());
 
-    auto to_erase_it = m_log_queue.begin();
-    for (auto it = m_log_queue.begin(); it != m_log_queue.end(); ++it)
+    auto it = m_log_queue.begin();
+    auto new_line = std::find(m_log_queue.begin(), m_log_queue.end(), '\n');
+    while (new_line != m_log_queue.end())
     {
-        if (*it == '\n')
-        {
-            std::string log_str(to_erase_it, it - 1);
-            RCLCPP_INFO(m_node_logger, log_str.c_str());        
-        }
-        to_erase_it = it;
+        RCLCPP_INFO(m_node_logger, std::string(it, new_line).c_str());
+        it = new_line+1; // skip new line character
+        new_line = std::find(it, m_log_queue.end(), '\n');
     }
 
-    m_log_queue.erase(m_log_queue.begin(), to_erase_it);
+    m_log_queue.erase(m_log_queue.begin(), it);
 }
 
 } // namespace platform_controller::init

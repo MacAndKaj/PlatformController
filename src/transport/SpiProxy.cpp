@@ -20,6 +20,21 @@
 namespace platform_controller::transport
 {
 
+std::string bufferToStr(const std::vector<std::uint8_t>& buffer)
+{
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    
+    for (auto& it : buffer)
+    {
+        ss << "0x";
+        ss << std::setw(2) << static_cast<int>(it);
+        ss << " ";
+    }
+
+    return ss.str();
+}
+
 SpiProxy::SpiProxy(init::IContext& context, const std::string& device_path)
     : m_logger(context.createLogger("SpiProxy"))
     , m_device_path(device_path)
@@ -125,9 +140,12 @@ void SpiProxy::spi_read_reg8(std::uint8_t reg)
 bool SpiProxy::send(const std::vector<std::uint8_t>& data)
 {
     constexpr int buffer_size{1};
+    std::vector<std::uint8_t> miso_buffer(data.size(), 0);
+
+    RCLCPP_INFO(m_logger, bufferToStr(data).c_str());
 
     const __u8* mosi = data.data();
-    const __u8* miso = nullptr;
+    const __u8* miso = miso_buffer.data();
     struct spi_ioc_transfer spi_transfer_buffer = {
         .tx_buf=(unsigned long)(mosi),
         .rx_buf=(unsigned long)(miso),
@@ -149,6 +167,7 @@ bool SpiProxy::send(const std::vector<std::uint8_t>& data)
         str << "Call ioctl(SPI_IOC_MESSAGE) failed with errno: (" 
             << err_status << ") "
             << std::strerror(err_status);
+        RCLCPP_ERROR(m_logger, str.str().c_str());
         return false;
     }
     return true;    

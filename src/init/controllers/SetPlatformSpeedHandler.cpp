@@ -38,6 +38,8 @@ void SetPlatformSpeedHandler::handle(const motoros_interfaces::msg::SetPlatformS
     {
         RCLCPP_ERROR(m_logger, "Error while sendind data to platform!");
     }
+    RCLCPP_INFO(m_logger, "SetPlatformSpeed sent.");
+    // RCLCPP_DEBUG(m_logger, "SetPlatformSpeed sent.");
 }
 
 } // namespace platform_controller::init::controllers

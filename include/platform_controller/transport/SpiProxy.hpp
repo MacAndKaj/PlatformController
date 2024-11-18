@@ -34,7 +34,7 @@ private:
     int m_fd{-1};
     const std::string m_device_path;
     static constexpr int s_m_word_length_bits{8};
-    static constexpr int s_m_mode{SPI_MODE_3 | SPI_3WIRE};
+    static constexpr int s_m_mode{SPI_MODE_3};
     static constexpr int s_m_speed{1500000};
 };
 

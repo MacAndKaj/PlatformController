@@ -139,7 +139,7 @@ TEST_P(SetPlatformSpeedHandlerTestsParametrized, BasicScenario)
 static const std::vector<ParametrizedTestSet> PARAMS = {
     {.r_speed=.0, .l_speed=.0, .req={0, 0, 0, 0}},
     {.r_speed=1.01, .l_speed=1.01, .req={1, 1, 1, 1}},
-    {.r_speed=-1.05, .l_speed=100.075, .req={100, 7, -1, 5}},
+    {.r_speed=-11.05, .l_speed=100.075, .req={100, 7, -1, 5}},
     {.r_speed=99.99, .l_speed=-99.099999, .req={-99, 10, 99, 99}},
 };
 
