@@ -31,6 +31,8 @@ public:
 
     transport::ITransportProxy& getLogsProxy() override;
 
+    gpio::IGpioManager& getGpioManager() override;
+
     rclcpp::Logger createLogger(const std::string& name) override;
 
 private:
@@ -39,6 +41,7 @@ private:
     std::unique_ptr<syscom::ISysCom> m_syscom;
     std::unique_ptr<transport::ITransportProxy> m_transport_proxy;
     std::unique_ptr<transport::ITransportProxy> m_logs_proxy;
+    std::unique_ptr<gpio::IGpioManager> m_gpio_manager;
 };
 
 } // namespace platform_controller::init

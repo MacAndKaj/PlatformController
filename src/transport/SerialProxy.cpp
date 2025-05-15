@@ -94,17 +94,22 @@ bool SerialProxy::send([[maybe_unused]] const std::vector<std::uint8_t>& data)
     return false;
 }
 
-std::vector<std::byte> SerialProxy::read()
+std::vector<std::uint8_t> SerialProxy::read()
 {
     constexpr size_t BUFFER_SIZE{256};
-    std::byte buffer[BUFFER_SIZE];
-    std::vector<std::byte> output;
-    output.reserve(BUFFER_SIZE); // just for prealocation, logs shouldn't be longer, if slow increase
+    std::uint8_t buffer[BUFFER_SIZE];
+    std::vector<std::uint8_t> output;
+    output.reserve(BUFFER_SIZE); // just for prealocation, logs shouldn't be longer, if slow then increase
     if (auto bytes_read = ::read(m_fd, buffer, BUFFER_SIZE); bytes_read > 0)
     {
         output.insert(output.end(), buffer, buffer + bytes_read);
     }
     return output;
+}
+
+std::vector<std::uint8_t> SerialProxy::read([[maybe_unused]]unsigned int nbytes)
+{
+    return std::vector<std::uint8_t>();
 }
 
 } // namespace platform_controller::transport

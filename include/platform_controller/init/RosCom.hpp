@@ -6,8 +6,6 @@
 
 #include <platform_controller/init/IRosCom.hpp>
 
-#include <rclcpp/rclcpp.hpp>
-
 #include <cstdint>
 
 namespace platform_controller::init

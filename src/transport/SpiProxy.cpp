@@ -12,10 +12,12 @@
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
 
+#include <chrono>
 #include <iomanip>
 #include <cstring>
 #include <iostream>
 #include <bitset>
+#include <thread>
 
 namespace platform_controller::transport
 {
@@ -37,6 +39,8 @@ std::string bufferToStr(const std::vector<std::uint8_t>& buffer)
 
 SpiProxy::SpiProxy(init::IContext& context, const std::string& device_path)
     : m_logger(context.createLogger("SpiProxy"))
+    , m_gpio_manager(context.getGpioManager())
+    , m_fd(-1)
     , m_device_path(device_path)
 {
     m_fd = open(m_device_path.c_str(), O_RDWR);
@@ -86,6 +90,16 @@ SpiProxy::SpiProxy(init::IContext& context, const std::string& device_path)
         close(m_fd);
         throw std::runtime_error("SpiProxy error");
     }
+
+    gpio::GpioConfig config_blueprint{
+        .consumer_name="SpiProxy",
+        .inout=gpio::GpioInOut::INPUT,
+        .output_level=gpio::GpioOutputActiveLevel::HIGH,
+        .modes={gpio::GpioMode::EDGE_RISING},
+    };
+
+    m_gpio_consumer_id = m_gpio_manager.setupLines({m_syscom_trigger_gpio}, config_blueprint);
+
     RCLCPP_INFO(m_logger, "SpiProxy initialized");
 }
 
@@ -139,17 +153,59 @@ void SpiProxy::spi_read_reg8(std::uint8_t reg)
 
 bool SpiProxy::send(const std::vector<std::uint8_t>& data)
 {
-    constexpr int buffer_size{1};
-    std::vector<std::uint8_t> miso_buffer(data.size(), 0);
+    SpiBuffer miso_buffer(data.size());
+    SpiBuffer mosi_buffer(data.begin(), data.end());
 
     RCLCPP_INFO(m_logger, bufferToStr(data).c_str());
+    return spiTransfer(miso_buffer, mosi_buffer);
+}
 
-    const __u8* mosi = data.data();
-    const __u8* miso = miso_buffer.data();
+std::vector<std::uint8_t> SpiProxy::read()
+{
+    return {};
+}
+
+std::vector<std::uint8_t> SpiProxy::read(unsigned int nbytes)
+{
+    const gpio::EventExpectation expectation{
+        .consumer_id=m_gpio_consumer_id,
+        .rising_edge=true,
+        .falling_edge=false,
+        .line_name=m_syscom_trigger_gpio
+    };
+
+    while (not m_gpio_manager.eventOccured(expectation))
+    {
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+    }
+
+    SpiBuffer miso_buffer(nbytes);
+    SpiBuffer mosi_buffer(nbytes);
+
+    if (not spiTransfer(miso_buffer, mosi_buffer))
+    {
+        return {};
+    }
+
+    // RCLCPP_INFO(m_logger, bufferToStr(miso_buffer).c_str());
+
+    return miso_buffer;
+}
+
+bool SpiProxy::spiTransfer(SpiBuffer& miso_buf, SpiBuffer& mosi_buf)
+{
+    if (miso_buf.size() != mosi_buf.size())
+    {
+        RCLCPP_ERROR(m_logger, "SPI transfer buffers size mismatch");
+        return false;
+    }
+
+    __u8* mosi = mosi_buf.data();
+    __u8* miso = miso_buf.data();
     struct spi_ioc_transfer spi_transfer_buffer = {
         .tx_buf=(unsigned long)(mosi),
         .rx_buf=(unsigned long)(miso),
-        .len=static_cast<__u32>(data.size()),
+        .len=static_cast<__u32>(miso_buf.size()),
         .speed_hz=s_m_speed,
         .delay_usecs=0,
         .bits_per_word=s_m_word_length_bits,
@@ -159,6 +215,8 @@ bool SpiProxy::send(const std::vector<std::uint8_t>& data)
         .word_delay_usecs=0,
         .pad=0,
     };
+
+    constexpr int buffer_size{1};
     int ret = ioctl(m_fd, SPI_IOC_MESSAGE(buffer_size), &spi_transfer_buffer);
     if (ret < 0)
     {
@@ -170,13 +228,8 @@ bool SpiProxy::send(const std::vector<std::uint8_t>& data)
         RCLCPP_ERROR(m_logger, str.str().c_str());
         return false;
     }
-    return true;    
-}
 
-std::vector<std::byte> SpiProxy::read()
-{
-    // not implemented
-    return {};
+    return true;
 }
 
 } // namespace platform_controller::transport

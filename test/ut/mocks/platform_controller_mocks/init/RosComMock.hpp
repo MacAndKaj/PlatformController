@@ -6,8 +6,6 @@
 
 #include <platform_controller/init/IRosCom.hpp>
 
-#include <motoros_interfaces/msg/set_platform_speed.hpp>
-
 #include <rclcpp/rclcpp.hpp>
 
 #include <memory>
@@ -20,8 +18,10 @@ class RosComMock : public IRosCom
 public:
     MOCK_METHOD(Subscriber,
         subscribeForSetPlatformSpeed,
-        (const std::function<void(const motoros_interfaces::msg::SetPlatformSpeed&)>&),
-        (const));
+        (const std::function<void(const motoros_interfaces::msg::SetPlatformSpeed&)>&));
+    MOCK_METHOD(Subscriber,
+        subscribeForSetPlatformPwmValue,
+        (const std::function<void(const motoros_interfaces::msg::SetPlatformPwmValue&)>&));
 };
 
 } // namespace platform_controller::init

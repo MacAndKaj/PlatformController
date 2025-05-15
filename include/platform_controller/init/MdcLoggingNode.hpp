@@ -6,7 +6,7 @@
 
 #include <platform_controller/init/IContext.hpp>
 
-#include <platform_controller/init/workers/LoggingWorker.hpp>
+// #include <platform_controller/init/workers/LoggingWorker.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -32,7 +32,7 @@ private:
     rclcpp::Logger m_node_logger;
     std::shared_ptr<IContext> m_context;
     rclcpp::TimerBase::SharedPtr m_node_timer;
-    std::unique_ptr<workers::LoggingWorker> m_worker;
+    // std::unique_ptr<workers::LoggingWorker> m_worker;
     std::deque<char> m_log_queue;
 };
 

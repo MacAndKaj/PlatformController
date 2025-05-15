@@ -25,6 +25,8 @@ public:
     MOCK_METHOD(syscom::ISysCom&, getSysCom,());
     MOCK_METHOD(void, setup, (const std::vector<rclcpp::Parameter>&));
     MOCK_METHOD(transport::ITransportProxy&, getTransportProxy, ());
+    MOCK_METHOD(transport::ITransportProxy&, getLogsProxy, ());
+    MOCK_METHOD(gpio::IGpioManager&, getGpioManager, ());
     MOCK_METHOD(rclcpp::Logger, createLogger, (const std::string&));
 };
 

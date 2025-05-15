@@ -21,7 +21,8 @@ public:
     SerialProxy(init::IContext& context, const std::string& device_path);
     virtual ~SerialProxy();
     bool send(const std::vector<std::uint8_t>& data) override;
-    std::vector<std::byte> read();
+    std::vector<std::uint8_t> read();
+    std::vector<std::uint8_t> read(unsigned int nbytes);
 
 private:
     rclcpp::Logger m_logger;

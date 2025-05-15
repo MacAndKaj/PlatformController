@@ -29,7 +29,7 @@ install(TARGETS ${NODE_NAME}
     DESTINATION lib/${PROJECT_NAME}
 )
 
-if (BUILD_TESTING)
+if (BUILD_TESTS)
     add_subdirectory(test)
 endif ()
 

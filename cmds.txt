@@ -1,5 +1,5 @@
 source /home/user/install/setup.bash
 
-ros2 run platform_controller platform_controller_node --ros-args -p transport_device_name:=/dev/spidev0.0
+ros2 run platform_controller platform_controller_node --ros-args -p transport_device_name:=/dev/spidev0.0 -p gpio_device_name:=chip0 -p serial_device_name:=/dev/ttyS0
 
 ros2 topic pub -1 /motur_head/set_platform_speed motoros_interfaces/msg/SetPlatformSpeed "{l_speed: 22.1,r_speed: 1.02}"

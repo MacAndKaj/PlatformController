@@ -25,9 +25,12 @@ public:
     void setup();
 
 private:
+    void slaveMonitoring();
+
     rclcpp::Logger m_node_logger;
     std::shared_ptr<IContext> m_context;
     std::vector<std::shared_ptr<controllers::IHandler>> m_controllers;
+    rclcpp::TimerBase::SharedPtr m_node_timer;
 };
 
 } // namespace platform_controller::init

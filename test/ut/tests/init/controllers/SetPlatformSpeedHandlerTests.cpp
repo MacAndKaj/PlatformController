@@ -123,15 +123,16 @@ TEST_P(SetPlatformSpeedHandlerTestsParametrized, BasicScenario)
 {
     auto sut = createSut();
 
-    PlatformSetMotorSpeedReq received_val;
+    syscom::Request received_val;
     EXPECT_CALL(*m_sys_com_mock, send(_))
         .Times(1)
         .WillOnce(DoAll(
             SaveArg<0>(&received_val),
             Return(true)));
     EXPECT_NO_THROW(launchHandler(GetParam().r_speed, GetParam().l_speed));
-    EXPECT_EQ(received_val, GetParam().req) 
-        << "Received " << printReq(received_val) 
+    EXPECT_EQ(received_val.msg_id, PLATFORM_SET_MOTOR_SPEED_REQ_ID);
+    EXPECT_EQ(received_val.msg.set_motor_speed_req, GetParam().req)
+        << "Received " << printReq(received_val.msg.set_motor_speed_req) 
         << std::endl
         << "Expected " << printReq(GetParam().req);
 }
@@ -139,7 +140,7 @@ TEST_P(SetPlatformSpeedHandlerTestsParametrized, BasicScenario)
 static const std::vector<ParametrizedTestSet> PARAMS = {
     {.r_speed=.0, .l_speed=.0, .req={0, 0, 0, 0}},
     {.r_speed=1.01, .l_speed=1.01, .req={1, 1, 1, 1}},
-    {.r_speed=-11.05, .l_speed=100.075, .req={100, 7, -1, 5}},
+    {.r_speed=-11.05, .l_speed=100.075, .req={100, 7, -11, 5}},
     {.r_speed=99.99, .l_speed=-99.099999, .req={-99, 10, 99, 99}},
 };
 

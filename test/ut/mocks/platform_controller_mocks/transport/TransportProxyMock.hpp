@@ -16,6 +16,8 @@ class TransportProxyMock : public ITransportProxy
 {
 public:
     MOCK_METHOD(bool, send, (const std::vector<std::uint8_t>&));
+    MOCK_METHOD(std::vector<std::uint8_t>, read, ());
+    MOCK_METHOD(std::vector<std::uint8_t>, read, (unsigned int nbytes));
 };
 
 } // namespace platform_controller::transport

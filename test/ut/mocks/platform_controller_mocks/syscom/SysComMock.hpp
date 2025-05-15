@@ -14,7 +14,10 @@ namespace platform_controller::syscom
 class SysComMock : public ISysCom
 {
 public:
-    MOCK_METHOD(bool, send, (const PlatformSetMotorSpeedReq& msg));
+    virtual ~SysComMock() = default;
+    MOCK_METHOD(void, work,());
+    MOCK_METHOD(bool, send, (const Request& msg));
+    MOCK_METHOD(int, subscribe, (MessageId msgId, const Callback& callback));
 };
 
 } // namespace platform_controller::syscom

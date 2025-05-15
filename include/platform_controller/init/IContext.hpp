@@ -4,6 +4,7 @@
 #ifndef PLATFORM_CONTROLLER_INIT_ICONTEXT_HPP_
 #define PLATFORM_CONTROLLER_INIT_ICONTEXT_HPP_
 
+#include <platform_controller/gpio/IGpioManager.hpp>
 #include <platform_controller/init/IRosCom.hpp>
 #include <platform_controller/transport/ITransportProxy.hpp>
 #include <platform_controller/syscom/ISysCom.hpp>
@@ -45,6 +46,10 @@ public:
     /// @brief Function returning reference to initialized logs transport proxy in current context.
     /// @return Reference to actual logs transport proxy.
     virtual transport::ITransportProxy& getLogsProxy() = 0;
+
+    /// @brief Function returning reference to initialized gpio manager in current context.
+    /// @return Reference to actual gpio manager.
+    virtual gpio::IGpioManager& getGpioManager() = 0;
 
     /// @brief Creates new logger with with node name extended with provided name.
     /// @param name String with logger name added to node prefix.

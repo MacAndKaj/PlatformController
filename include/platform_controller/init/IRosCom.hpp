@@ -4,6 +4,7 @@
 #ifndef PLATFORM_CONTROLLER_INIT_IROSCOM_HPP_
 #define PLATFORM_CONTROLLER_INIT_IROSCOM_HPP_
 
+// must get rid of it - requires to move interfaces to separate lib in cmake
 #include <motoros_interfaces/msg/set_platform_speed.hpp>
 #include <motoros_interfaces/msg/set_platform_pwm_value.hpp>
 

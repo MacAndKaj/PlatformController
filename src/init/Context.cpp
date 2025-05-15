@@ -4,6 +4,8 @@
 
 #include <platform_controller/init/Context.hpp>
 
+#include <platform_controller/gpio/GpioManager.hpp>
+#include <platform_controller/gpio/Rpi3BPlusGpioChips.hpp>
 #include <platform_controller/transport/SpiProxy.hpp>
 #include <platform_controller/transport/SerialProxy.hpp>
 
@@ -51,8 +53,28 @@ void Context::setup(const std::vector<rclcpp::Parameter>& parameters)
 
         if (param.get_name() == "serial_device_name")
         {
+            // TODO: change m_logs_proxy to m_transport_proxy because of 1node=1transport rule
             RCLCPP_INFO(m_current_node.get_logger(), "Creating SerialProxy");
             m_logs_proxy = std::make_unique<transport::SerialProxy>( *this, param.as_string());
+        }
+
+        if (param.get_name() == "gpio_device_name")
+        {
+            RCLCPP_INFO(m_current_node.get_logger(), "Creating GpioManager");
+
+            if (param.as_string() == "chip0")
+            {
+                m_gpio_manager = std::make_unique<gpio::GpioManager>(*this, gpio::rpi3bplus::buildGpioChip0Info());
+
+            }
+            else if (param.as_string() == "chip1")
+            {
+                m_gpio_manager = std::make_unique<gpio::GpioManager>(*this, gpio::rpi3bplus::buildGpioChip1Info());
+            }
+            else
+            {
+                throw std::runtime_error("Unknown gpio chip name");
+            }
         }
     }
 }
@@ -69,7 +91,13 @@ transport::ITransportProxy& Context::getLogsProxy()
     return *m_logs_proxy;
 }
 
-rclcpp::Logger Context::createLogger(const std::string& name)
+gpio::IGpioManager& Context::getGpioManager()
+{
+    if (!m_gpio_manager) throw std::runtime_error("Context not initialized - set Gpio Manager");
+    return *m_gpio_manager;
+}
+
+rclcpp::Logger Context::createLogger(const std::string &name)
 {
     return m_current_node.get_logger().get_child(name);
 }

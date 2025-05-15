@@ -68,7 +68,9 @@ TEST_F(SysComTests, FailDuringSend)
 {
     auto sut = createSut();
 
-    PlatformSetMotorSpeedReq req{
+    syscom::Request req;
+    req.msg_id = PLATFORM_SET_MOTOR_SPEED_REQ_ID;
+    req.msg.set_motor_speed_req = {
         .lSpeedI=100,
         .lSpeedF=0,
         .rSpeedI=-100,
@@ -112,6 +114,10 @@ TEST_P(SysComTestsPlatformSetMotorSpeedReq, BasicScenario)
     auto sut = createSut();
 
     auto req = GetParam().req;
+
+    syscom::Request request;
+    request.msg_id = PLATFORM_SET_MOTOR_SPEED_REQ_ID;
+    request.msg.set_motor_speed_req = req;
     auto serialized_req = GetParam().serialized_req;
 
     std::vector<std::uint8_t> received_bytes;
@@ -120,7 +126,7 @@ TEST_P(SysComTestsPlatformSetMotorSpeedReq, BasicScenario)
         .WillOnce(DoAll(
             SaveArg<0>(&received_bytes),
             Return(true)));
-    EXPECT_TRUE(sut->send(req));
+    EXPECT_TRUE(sut->send(request));
     
     auto expected_bytes = bytes_for_message(PLATFORM_SET_MOTOR_SPEED_REQ_ID, serialized_req);
     EXPECT_EQ(received_bytes.size(), expected_bytes.size());

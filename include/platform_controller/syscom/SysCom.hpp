@@ -9,6 +9,10 @@
 #include <platform_controller/init/IContext.hpp>
 #include <platform_controller/transport/ITransportProxy.hpp>
 
+#include <mutex>
+#include <unordered_map>
+#include <utility>
+
 namespace platform_controller::syscom
 {
 
@@ -17,11 +21,19 @@ class SysCom : public ISysCom
 public:
     explicit SysCom(init::IContext& context);
     virtual ~SysCom() = default;
-    bool send(const PlatformSetMotorSpeedReq& msg) override;
-    bool send(const PlatformSetMotorPwmValueReq& msg) override;
+    void work() override;
+    bool send(const Request& msg) override;
+    int subscribe(MessageId msgId, const Callback& callback);
 
 private:
+    void dispatch(const std::vector<std::uint8_t>& bytes);
+
     rclcpp::Logger m_logger;
+    std::uint64_t m_subscriptions_counter;
+
+    using MsgSubscription = std::pair<MessageId, Callback>;
+    std::unordered_map<std::uint64_t, MsgSubscription> m_subscriptions;
+    std::mutex m_communication_mutex;
     transport::ITransportProxy& m_proxy;
 };
 

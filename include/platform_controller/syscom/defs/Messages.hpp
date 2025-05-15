@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+#include "MessageIds.hpp"
+
 enum Status
 {
     NoError,
@@ -56,6 +58,32 @@ struct PlatformSetMotorPwmValueResp
 };
 typedef struct PlatformSetMotorPwmValueResp PlatformSetMotorPwmValueResp;
 
+/*
+ * statusSet - bitset to request specific statuses
+ *      bits:
+ *           0 - speed
+ *           1 - modules status
+ */
+struct PlatformPollStatusReq
+{
+    uint8_t statusSet; 
+};
+typedef struct PlatformPollStatusReq PlatformPollStatusReq;
 
+/*
+ * lSpeedF/rSpeedF  - fraction part of speed values - 0.xx
+ * lSpeedI/rSpeedI  - integer part of speed values - xxx.0
+ * moduleStatus     - bitset with modules Status (1-OK, 0-NOK)
+ *                  bits: 0...7 - controller|feedback|log|syscom|[4...7 Not used]
+ */
+struct PlatformPollStatusResp
+{
+    int8_t lSpeedI;
+    uint8_t lSpeedF; 
+    int8_t rSpeedI;
+    uint8_t rSpeedF;
+    uint8_t moduleStatus;
+};
+typedef struct PlatformPollStatusResp PlatformPollStatusResp;
 
 #endif // PLATFORM_CONTROLLER_SYSCOM_DEFS_MESSAGES_HPP_
