@@ -1,11 +1,12 @@
 /**
-  * Copyright (c) 2023 M. Kajdak. All rights reserved.
+  * Copyright (c) 2023 MacAndKaj. All rights reserved.
   */
 #ifndef PLATFORM_CONTROLLER_INIT_ICONTEXT_HPP_
 #define PLATFORM_CONTROLLER_INIT_ICONTEXT_HPP_
 
 #include <platform_controller/gpio/IGpioManager.hpp>
-#include <platform_controller/init/IRosCom.hpp>
+#include <platform_controller/roscom/IRosCom.hpp>
+#include <platform_controller/init/ITimersManager.hpp>
 #include <platform_controller/transport/ITransportProxy.hpp>
 #include <platform_controller/syscom/ISysCom.hpp>
 
@@ -21,11 +22,11 @@ public:
     
     /// @brief Function to set RosCom object for current context.
     /// @param roscom initialized RosCom
-    virtual void setRosCom(std::unique_ptr<IRosCom> roscom) = 0;
+    virtual void setRosCom(std::unique_ptr<roscom::IRosCom> roscom) = 0;
 
     /// @brief Returns reference to RosCom instance
     /// @return Reference to RosCom instance
-    virtual IRosCom& getRosCom() = 0;
+    virtual roscom::IRosCom& getRosCom() = 0;
     
     /// @brief Function to set SysCom object for current context.
     /// @param roscom initialized SysCom
@@ -51,10 +52,15 @@ public:
     /// @return Reference to actual gpio manager.
     virtual gpio::IGpioManager& getGpioManager() = 0;
 
+    /// @brief Function returning reference to initialized timers manager in current context.
+    /// @return Reference to actual timers manager.
+    virtual ITimersManager& getTimersManager() = 0;
+
     /// @brief Creates new logger with with node name extended with provided name.
     /// @param name String with logger name added to node prefix.
     /// @return New logger instance
     virtual rclcpp::Logger createLogger(const std::string& name) = 0;
+
 };
 
 } // namespace platform_controller::init

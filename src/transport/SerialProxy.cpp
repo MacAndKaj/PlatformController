@@ -1,5 +1,5 @@
 /**
-  * Copyright (c) 2024 M. Kajdak. All rights reserved.
+  * Copyright (c) 2024 MacAndKaj. All rights reserved.
   */
 #include <platform_controller/transport/SerialProxy.hpp>
 

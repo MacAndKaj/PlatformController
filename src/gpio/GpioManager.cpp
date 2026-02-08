@@ -1,5 +1,5 @@
 /**
-  * Copyright (c) 2023 M. Kajdak. All rights reserved.
+  * Copyright (c) 2023 MacAndKaj. All rights reserved.
   */
 #include <platform_controller/gpio/GpioManager.hpp>
 
@@ -145,28 +145,25 @@ unsigned int GpioManager::setupLines(const std::vector<std::string>& lines, cons
 
 bool GpioManager::eventOccured(const EventExpectation& expectation)
 {
-    struct gpio_v2_line_event event;
+    gpio_v2_line_event event;
     int lfd = m_line_fds.at(expectation.consumer_id);
-    
-    int ret = read(lfd, &event, sizeof(event));
-    if (ret == -1)
+
+    if (read(lfd, &event, sizeof(event)) == -1)
     {
         if (errno == -EAGAIN)
         {
             return false;
         }
-        else
-        {
-            int err_status = errno;
-            std::stringstream str;
-            str << "Call read() for " 
-                << m_gpio_chip_info->chip_dev_name
-                << " failed with errno: (" 
-                << err_status << ") "
-                << std::strerror(err_status) << std::endl;
-            RCLCPP_ERROR(m_logger, str.str().c_str());
-            throw std::runtime_error("Event reading error");
-        }
+
+        int err_status = errno;
+        std::stringstream str;
+        str << "Call read() for "
+            << m_gpio_chip_info->chip_dev_name
+            << " failed with errno: ("
+            << err_status << ") "
+            << std::strerror(err_status) << std::endl;
+        RCLCPP_ERROR(m_logger, str.str().c_str());
+        throw std::runtime_error("Event reading error");
     }
 
     if (((expectation.rising_edge and event.id == GPIOEVENT_EVENT_RISING_EDGE) or

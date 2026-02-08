@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 M. Kajdak. All rights reserved.
+ * Copyright (c) 2025 MacAndKaj. All rights reserved.
  */
 
 #ifndef PLATFORM_CONTROLLER_SYSCOM_RESPONSE_HPP_
@@ -15,6 +15,7 @@ struct Response
     union {
         PlatformSetMotorSpeedResp set_motor_speed_resp;
         PlatformSetMotorPwmValueResp set_motor_pwm_value_resp;
+        PlatformPollStatusResp poll_status_resp;
     } msg;
     int msg_id;
 };

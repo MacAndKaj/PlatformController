@@ -1,10 +1,10 @@
 /**
-  * Copyright (c) 2023 M. Kajdak. All rights reserved.
+  * Copyright (c) 2023 MacAndKaj. All rights reserved.
   */
 #include <platform_controller/init/controllers/SetPlatformSpeedHandler.hpp>
 
 #include <platform_controller_mocks/init/ContextMock.hpp>
-#include <platform_controller_mocks/init/RosComMock.hpp>
+#include <platform_controller_mocks/roscom/RosComMock.hpp>
 #include <platform_controller_mocks/syscom/SysComMock.hpp>
 
 #include <motoros_interfaces/msg/set_platform_speed.hpp>
@@ -40,7 +40,7 @@ struct SetPlatformSpeedHandlerTests : public Test
     void SetUp() override
     {
         m_context_mock = std::make_unique<ContextMock>();
-        m_ros_com_mock = std::make_unique<RosComMock>();
+        m_ros_com_mock = std::make_unique<roscom::RosComMock>();
         m_sys_com_mock = std::make_unique<syscom::SysComMock>();
         m_callback.reset();
     }
@@ -80,8 +80,8 @@ struct SetPlatformSpeedHandlerTests : public Test
         (*m_callback)(msg);
     }
 
-    std::unique_ptr<init::ContextMock> m_context_mock;
-    std::unique_ptr<init::RosComMock> m_ros_com_mock;
+    std::unique_ptr<ContextMock> m_context_mock;
+    std::unique_ptr<roscom::RosComMock> m_ros_com_mock;
     std::unique_ptr<syscom::SysComMock> m_sys_com_mock;
     std::optional<std::function<void(const motoros_interfaces::msg::SetPlatformSpeed&)>> m_callback;
 };

@@ -1,5 +1,5 @@
 /**
-  * Copyright (c) 2025 M. Kajdak. All rights reserved.
+  * Copyright (c) 2025 MacAndKaj. All rights reserved.
   */
 
 #ifndef PLATFORM_CONTROLLER_GPIO_GPIOMANAGER_HPP_

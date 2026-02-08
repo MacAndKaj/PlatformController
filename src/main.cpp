@@ -1,10 +1,10 @@
 /**
-  * Copyright (c) 2023 M. Kajdak. All rights reserved.
+  * Copyright (c) 2023 MacAndKaj. All rights reserved.
   */
 #include <platform_controller/init/Context.hpp>
 #include <platform_controller/init/PlatformControllerNode.hpp>
 #include <platform_controller/init/MdcLoggingNode.hpp>
-#include <platform_controller/init/RosCom.hpp>
+#include <platform_controller/roscom/RosCom.hpp>
 #include <platform_controller/init/UserCommunicationNode.hpp>
 #include <platform_controller/syscom/SysCom.hpp>
 
@@ -19,10 +19,12 @@ int main(int argc, char ** argv)
     auto platform_controller_node = std::make_shared<platform_controller::init::PlatformControllerNode>(
         "PlatformController"
     );
+    rclcpp::executors::MultiThreadedExecutor platform_controller_executor{};
+    platform_controller_executor.add_node(platform_controller_node->get_node_base_interface());
     {
         auto pc_context = std::make_shared<platform_controller::init::Context>(*platform_controller_node);
         platform_controller_node->setContext(pc_context);
-        auto roscom = std::make_unique<platform_controller::init::RosCom>(*platform_controller_node);
+        auto roscom = std::make_unique<platform_controller::roscom::RosCom>(*platform_controller_node, *pc_context);
         pc_context->setRosCom(std::move(roscom));
         auto syscom = std::make_unique<platform_controller::syscom::SysCom>(*pc_context);
         pc_context->setSysCom(std::move(syscom));
@@ -42,7 +44,8 @@ int main(int argc, char ** argv)
 
     std::thread platform_controller_node_thread([&](){
         platform_controller_node->setup();
-        rclcpp::spin(platform_controller_node);
+        // rclcpp::spin(platform_controller_node);
+        platform_controller_executor.spin();
     });
 
     std::thread mdc_loggind_thread([&](){

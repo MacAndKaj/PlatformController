@@ -1,5 +1,5 @@
 /**
-  * Copyright (c) 2024 M. Kajdak. All rights reserved.
+  * Copyright (c) 2024 MacAndKaj. All rights reserved.
   */
 
 #include <algorithm>
@@ -25,6 +25,11 @@ MdcLoggingNode::MdcLoggingNode(const std::string& node_name)
     }
 
     RCLCPP_INFO(m_node_logger, "Node initialized");
+}
+
+MdcLoggingNode::~MdcLoggingNode()
+{
+    RCLCPP_INFO(m_node_logger, "Node destructed");
 }
 
 void MdcLoggingNode::setContext(std::shared_ptr<IContext> context)

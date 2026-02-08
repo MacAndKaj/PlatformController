@@ -1,5 +1,5 @@
 /**
-  * Copyright (c) 2023 M. Kajdak. All rights reserved.
+  * Copyright (c) 2023 MacAndKaj. All rights reserved.
   */
 #include <platform_controller/transport/SpiProxy.hpp>
 
@@ -42,6 +42,7 @@ SpiProxy::SpiProxy(init::IContext& context, const std::string& device_path)
     , m_gpio_manager(context.getGpioManager())
     , m_fd(-1)
     , m_device_path(device_path)
+    , m_working(true)
 {
     m_fd = open(m_device_path.c_str(), O_RDWR);
     if (m_fd < 0)
@@ -105,10 +106,12 @@ SpiProxy::SpiProxy(init::IContext& context, const std::string& device_path)
 
 SpiProxy::~SpiProxy()
 {
+    m_working = false;
     if (m_fd >= 0)
     {
         close(m_fd);
     }
+
     RCLCPP_INFO(m_logger, "SpiProxy closed ");
 }
 
@@ -176,18 +179,21 @@ std::vector<std::uint8_t> SpiProxy::read(unsigned int nbytes)
 
     while (not m_gpio_manager.eventOccured(expectation))
     {
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        if (not m_working) return{};
+        // std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
 
     SpiBuffer miso_buffer(nbytes);
     SpiBuffer mosi_buffer(nbytes);
+
+    RCLCPP_INFO(m_logger, "Reading data from SPI, expected size: %d bytes", nbytes);
 
     if (not spiTransfer(miso_buffer, mosi_buffer))
     {
         return {};
     }
 
-    // RCLCPP_INFO(m_logger, bufferToStr(miso_buffer).c_str());
+    RCLCPP_INFO(m_logger, bufferToStr(miso_buffer).c_str());
 
     return miso_buffer;
 }
@@ -202,7 +208,7 @@ bool SpiProxy::spiTransfer(SpiBuffer& miso_buf, SpiBuffer& mosi_buf)
 
     __u8* mosi = mosi_buf.data();
     __u8* miso = miso_buf.data();
-    struct spi_ioc_transfer spi_transfer_buffer = {
+    spi_ioc_transfer spi_transfer_buffer = {
         .tx_buf=(unsigned long)(mosi),
         .rx_buf=(unsigned long)(miso),
         .len=static_cast<__u32>(miso_buf.size()),
@@ -217,8 +223,8 @@ bool SpiProxy::spiTransfer(SpiBuffer& miso_buf, SpiBuffer& mosi_buf)
     };
 
     constexpr int buffer_size{1};
-    int ret = ioctl(m_fd, SPI_IOC_MESSAGE(buffer_size), &spi_transfer_buffer);
-    if (ret < 0)
+    std::lock_guard lock(m_spi_mutex);
+    if (ioctl(m_fd, SPI_IOC_MESSAGE(buffer_size), &spi_transfer_buffer) < 0)
     {
         int err_status = errno;
         std::stringstream str;

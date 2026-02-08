@@ -1,5 +1,5 @@
 /**
-  * Copyright (c) 2024 M. Kajdak. All rights reserved.
+  * Copyright (c) 2024 MacAndKaj. All rights reserved.
   */
 #ifndef PLATFORM_CONTROLLER_TRANSPORT_SERIALPROXY_HPP_
 #define PLATFORM_CONTROLLER_TRANSPORT_SERIALPROXY_HPP_

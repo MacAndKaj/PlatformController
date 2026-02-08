@@ -1,5 +1,5 @@
 ####################################################
-# Copyright (c) 2023 M. Kajdak. All rights reserved.
+# Copyright (c) 2023 MacAndKaj. All rights reserved.
 ####################################################
 cmake_minimum_required(VERSION 3.8)
 

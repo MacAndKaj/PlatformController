@@ -1,11 +1,12 @@
 /**
-  * Copyright (c) 2023 M. Kajdak. All rights reserved.
+  * Copyright (c) 2023 MacAndKaj. All rights reserved.
   */
 
 #include <platform_controller/init/Context.hpp>
 
 #include <platform_controller/gpio/GpioManager.hpp>
 #include <platform_controller/gpio/Rpi3BPlusGpioChips.hpp>
+#include <platform_controller/init/TimersManager.hpp>
 #include <platform_controller/transport/SpiProxy.hpp>
 #include <platform_controller/transport/SerialProxy.hpp>
 
@@ -16,15 +17,16 @@ namespace platform_controller::init
 
 Context::Context(rclcpp::Node& current_node)
     : m_current_node(current_node)
+    , m_timers_manager(std::make_unique<TimersManager>(current_node))
 {
 }
 
-void Context::setRosCom(std::unique_ptr<IRosCom> roscom)
+void Context::setRosCom(std::unique_ptr<roscom::IRosCom> roscom)
 {
     m_roscom = std::move(roscom);
 }
 
-IRosCom& Context::getRosCom()
+roscom::IRosCom& Context::getRosCom()
 {
     if (!m_roscom) throw std::runtime_error("Context not initialized - set RosCom");
     return *m_roscom;
@@ -95,6 +97,12 @@ gpio::IGpioManager& Context::getGpioManager()
 {
     if (!m_gpio_manager) throw std::runtime_error("Context not initialized - set Gpio Manager");
     return *m_gpio_manager;
+}
+
+ITimersManager& Context::getTimersManager()
+{
+    if (!m_timers_manager) throw std::runtime_error("Context not initialized - set Timers Manager");
+    return *m_timers_manager;
 }
 
 rclcpp::Logger Context::createLogger(const std::string &name)

@@ -1,5 +1,5 @@
 /**
-  * Copyright (c) 2023 M. Kajdak. All rights reserved.
+  * Copyright (c) 2023 MacAndKaj. All rights reserved.
   */
 #ifndef PLATFORM_CONTROLLER_TRANSPORT_SPIPROXY_HPP_
 #define PLATFORM_CONTROLLER_TRANSPORT_SPIPROXY_HPP_
@@ -40,6 +40,8 @@ private:
     int m_fd{-1};
     const std::string m_device_path;
     unsigned int m_gpio_consumer_id;
+    bool m_working;
+    std::mutex m_spi_mutex;
 
     static constexpr int s_m_word_length_bits{8};
     static constexpr int s_m_mode{SPI_MODE_3};

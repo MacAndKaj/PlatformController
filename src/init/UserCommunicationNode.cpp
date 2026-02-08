@@ -1,5 +1,5 @@
 /**
-  * Copyright (c) 2024 M. Kajdak. All rights reserved.
+  * Copyright (c) 2024 MacAndKaj. All rights reserved.
   */
 
 #include <platform_controller/init/UserCommunicationNode.hpp>
@@ -14,7 +14,7 @@ static const std::map<std::string, rclcpp::ParameterType> ARGUMENTS = {
 };
 
 UserCommunicationNode::UserCommunicationNode(const std::string& node_name)
-    : rclcpp::Node(node_name)
+    : Node(node_name)
     , m_node_logger(get_logger())
 {
     for (const auto& [key, val] : ARGUMENTS)
@@ -23,6 +23,11 @@ UserCommunicationNode::UserCommunicationNode(const std::string& node_name)
     }
 
     RCLCPP_INFO(m_node_logger, "Node initialized");
+}
+
+UserCommunicationNode::~UserCommunicationNode()
+{
+    RCLCPP_INFO(m_node_logger, "Node destructed");
 }
 
 void UserCommunicationNode::setContext(std::shared_ptr<IContext> context)

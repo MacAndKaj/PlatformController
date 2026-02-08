@@ -1,35 +1,37 @@
 ####################################################
-# Copyright (c) 2023 M. Kajdak. All rights reserved.
+# Copyright (c) 2023 MacAndKaj. All rights reserved.
 ####################################################
 set(LIBRARY_NAME platform_controller_init)
 
 set(HEADERS_DIR ${CMAKE_SOURCE_DIR}/include)
 
 file(GLOB SOURCES
+    # HEADERS
     ${HEADERS_DIR}/platform_controller/init/Context.hpp
-    ${HEADERS_DIR}/platform_controller/init/IContext.hpp
     ${HEADERS_DIR}/platform_controller/init/MdcLoggingNode.hpp
     ${HEADERS_DIR}/platform_controller/init/PlatformControllerNode.hpp
-    ${HEADERS_DIR}/platform_controller/init/IRosCom.hpp
-    ${HEADERS_DIR}/platform_controller/init/RosCom.hpp
+    ${HEADERS_DIR}/platform_controller/init/IContext.hpp
+    ${HEADERS_DIR}/platform_controller/init/ITimersManager.hpp
+    ${HEADERS_DIR}/platform_controller/init/TimersManager.hpp
     ${HEADERS_DIR}/platform_controller/init/UserCommunicationNode.hpp
 
     ${HEADERS_DIR}/platform_controller/controllers/IHandler.hpp
     ${HEADERS_DIR}/platform_controller/controllers/SetPlatformPwmValueHandler.hpp
     ${HEADERS_DIR}/platform_controller/controllers/SetPlatformSpeedHandler.hpp
 
-    # ${HEADERS_DIR}/platform_controller/workers/LoggingWorker.hpp
+    ${HEADERS_DIR}/platform_controller/services/PlatformStatusPollingService.hpp
 
+    # SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Context.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MdcLoggingNode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PlatformControllerNode.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/RosCom.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TimersManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UserCommunicationNode.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/controllers/SetPlatformPwmValueHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/controllers/SetPlatformSpeedHandler.cpp
 
-    # ${CMAKE_CURRENT_SOURCE_DIR}/workers/LoggingWorker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/services/PlatformStatusPollingService.cpp
 )
 
 add_library(${LIBRARY_NAME} ${SOURCES})
@@ -48,6 +50,7 @@ target_link_libraries(${LIBRARY_NAME}
     # INTERNAL LIBRARIES
     PUBLIC platform_controller_gpio
     PUBLIC platform_controller_transport
+    PUBLIC platform_controller_roscom
     PUBLIC platform_controller_syscom
 
     # EXTERNAL LIBRARIES

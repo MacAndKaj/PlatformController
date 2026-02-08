@@ -1,5 +1,5 @@
 /**
-  * Copyright (c) 2024 M. Kajdak. All rights reserved.
+  * Copyright (c) 2024 MacAndKaj. All rights reserved.
   */
 #ifndef PLATFORM_CONTROLLER_INIT_MDCLOGGINGNODE_HPP_
 #define PLATFORM_CONTROLLER_INIT_MDCLOGGINGNODE_HPP_
@@ -21,7 +21,7 @@ class MdcLoggingNode : public rclcpp::Node
 {
 public:
     explicit MdcLoggingNode(const std::string& node_name);
-    virtual ~MdcLoggingNode() = default;
+    virtual ~MdcLoggingNode();
     void setContext(std::shared_ptr<IContext> context);
     void setup();
 

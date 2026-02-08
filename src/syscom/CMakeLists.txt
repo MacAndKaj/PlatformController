@@ -1,5 +1,5 @@
 ####################################################
-# Copyright (c) 2023 M. Kajdak. All rights reserved.
+# Copyright (c) 2023 MacAndKaj. All rights reserved.
 ####################################################
 
 set(HEADERS_DIR ${CMAKE_SOURCE_DIR}/include)
@@ -29,11 +29,13 @@ file(GLOB SOURCES
     # HEADERS
     ${HEADERS_DIR}/platform_controller/syscom/ISysCom.hpp
     ${HEADERS_DIR}/platform_controller/syscom/SysCom.hpp
+    ${HEADERS_DIR}/platform_controller/syscom/codecs/PlatformPollStatusSerDes.hpp
     ${HEADERS_DIR}/platform_controller/syscom/codecs/PlatformSetMotorSpeedSerDes.hpp
     ${HEADERS_DIR}/platform_controller/syscom/codecs/PlatformSetMotorPwmValueSerDes.hpp
 
     # SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/SysCom.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/codecs/PlatformPollStatusSerDes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codecs/PlatformSetMotorSpeedSerDes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codecs/PlatformSetMotorPwmValueSerDes.cpp
 )

@@ -1,5 +1,5 @@
 /**
-  * Copyright (c) 2025 M. Kajdak. All rights reserved.
+  * Copyright (c) 2025 MacAndKaj. All rights reserved.
   */
 #ifndef PLATFORM_CONTROLLER_SYSCOM_DEFS_MESSAGEIDS_HPP_
 #define PLATFORM_CONTROLLER_SYSCOM_DEFS_MESSAGEIDS_HPP_
