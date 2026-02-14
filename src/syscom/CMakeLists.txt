@@ -27,15 +27,15 @@ project(platform_controller_syscom)
 
 file(GLOB SOURCES
     # HEADERS
+    ${HEADERS_DIR}/platform_controller/syscom/CommandQueue.hpp
     ${HEADERS_DIR}/platform_controller/syscom/ISysCom.hpp
     ${HEADERS_DIR}/platform_controller/syscom/SysCom.hpp
-    ${HEADERS_DIR}/platform_controller/syscom/codecs/PlatformPollStatusSerDes.hpp
     ${HEADERS_DIR}/platform_controller/syscom/codecs/PlatformSetMotorSpeedSerDes.hpp
     ${HEADERS_DIR}/platform_controller/syscom/codecs/PlatformSetMotorPwmValueSerDes.hpp
 
     # SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommandQueue.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SysCom.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/codecs/PlatformPollStatusSerDes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codecs/PlatformSetMotorSpeedSerDes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codecs/PlatformSetMotorPwmValueSerDes.cpp
 )

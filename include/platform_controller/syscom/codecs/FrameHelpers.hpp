@@ -6,6 +6,9 @@
 
 #include <platform_controller/syscom/defs/Frame.hpp>
 
+#include <vector>
+#include <cstring>
+
 namespace platform_controller::syscom::codecs
 {
 
@@ -34,8 +37,7 @@ inline uint8_t msgId(const std::vector<std::uint8_t>& bytes)
     return bytes[1];
 }
 
-template<typename T>
-inline T deserialize(const std::vector<std::uint8_t>& bytes)
+inline Frame deserialize(const std::vector<std::uint8_t>& bytes)
 {
     if (bytes.size() != FRAME_SIZE)
     {
@@ -45,10 +47,14 @@ inline T deserialize(const std::vector<std::uint8_t>& bytes)
     Frame frame{};
     std::memcpy(&frame, bytes.data(), FRAME_SIZE);
 
-    T msg;
-    std::memcpy(&msg, frame.data, sizeof(T));
+    return frame;
+}
 
-    return msg;
+inline std::vector<uint8_t> serialize(const Frame& frame)
+{
+    std::vector<uint8_t> bytes(FRAME_SIZE);
+    std::memcpy(bytes.data(), &frame, FRAME_SIZE);
+    return bytes;
 }
 
 } // namespace platform_controller::syscom::codecs

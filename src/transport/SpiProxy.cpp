@@ -19,6 +19,8 @@
 #include <bitset>
 #include <thread>
 
+#include "platform_controller/syscom/defs/Frame.hpp"
+
 namespace platform_controller::transport
 {
 
@@ -39,8 +41,6 @@ std::string bufferToStr(const std::vector<std::uint8_t>& buffer)
 
 SpiProxy::SpiProxy(init::IContext& context, const std::string& device_path)
     : m_logger(context.createLogger("SpiProxy"))
-    , m_gpio_manager(context.getGpioManager())
-    , m_fd(-1)
     , m_device_path(device_path)
     , m_working(true)
 {
@@ -92,15 +92,6 @@ SpiProxy::SpiProxy(init::IContext& context, const std::string& device_path)
         throw std::runtime_error("SpiProxy error");
     }
 
-    gpio::GpioConfig config_blueprint{
-        .consumer_name="SpiProxy",
-        .inout=gpio::GpioInOut::INPUT,
-        .output_level=gpio::GpioOutputActiveLevel::HIGH,
-        .modes={gpio::GpioMode::EDGE_RISING},
-    };
-
-    m_gpio_consumer_id = m_gpio_manager.setupLines({m_syscom_trigger_gpio}, config_blueprint);
-
     RCLCPP_INFO(m_logger, "SpiProxy initialized");
 }
 
@@ -122,7 +113,7 @@ void SpiProxy::spi_read_reg8(std::uint8_t reg)
     // __u8 miso[2] = {0x00, 0x00};
     __u8 mosi[2] = {cmd,0x00};
 
-    struct spi_ioc_transfer spi_transfer_buffer[buffer_size] = {
+    spi_ioc_transfer spi_transfer_buffer[buffer_size] = {
         {
             .tx_buf=(unsigned long)(mosi),
             .rx_buf=(unsigned long)NULL,
@@ -163,6 +154,19 @@ bool SpiProxy::send(const std::vector<std::uint8_t>& data)
     return spiTransfer(miso_buffer, mosi_buffer);
 }
 
+std::vector<std::uint8_t> SpiProxy::sendRead(const std::vector<std::uint8_t>& data)
+{
+    SpiBuffer miso_buffer(data.size());
+    SpiBuffer mosi_buffer(data.begin(), data.end());
+
+    if (not spiTransfer(miso_buffer, mosi_buffer))
+    {
+        return {};
+    }
+
+    return miso_buffer;
+}
+
 std::vector<std::uint8_t> SpiProxy::read()
 {
     return {};
@@ -170,18 +174,6 @@ std::vector<std::uint8_t> SpiProxy::read()
 
 std::vector<std::uint8_t> SpiProxy::read(unsigned int nbytes)
 {
-    const gpio::EventExpectation expectation{
-        .consumer_id=m_gpio_consumer_id,
-        .rising_edge=true,
-        .falling_edge=false,
-        .line_name=m_syscom_trigger_gpio
-    };
-
-    while (not m_gpio_manager.eventOccured(expectation))
-    {
-        if (not m_working) return{};
-        // std::this_thread::sleep_for(std::chrono::microseconds(10));
-    }
 
     SpiBuffer miso_buffer(nbytes);
     SpiBuffer mosi_buffer(nbytes);

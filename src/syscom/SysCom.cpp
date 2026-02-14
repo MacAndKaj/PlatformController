@@ -2,110 +2,106 @@
   * Copyright (c) 2023 MacAndKaj. All rights reserved.
   */
 
+#include <ranges>
 #include <platform_controller/syscom/SysCom.hpp>
 
 #include <platform_controller/init/IContext.hpp>
 #include <platform_controller/syscom/defs/Messages.hpp>
 #include <platform_controller/syscom/codecs/FrameHelpers.hpp>
-#include <platform_controller/syscom/codecs/PlatformPollStatusSerDes.hpp>
 #include <platform_controller/syscom/codecs/PlatformSetMotorSpeedSerDes.hpp>
 #include <platform_controller/syscom/codecs/PlatformSetMotorPwmValueSerDes.hpp>
 #include <platform_controller/transport/ITransportProxy.hpp>
 
+#include "platform_controller/syscom/defs/MessageIds.hpp"
+
 namespace platform_controller::syscom
 {
 
+PlatformStatus get_status(const Frame& frame)
+{
+    if (frame.id != PLATFORM_STATUS_MSG_ID)
+    {
+        return {};
+    }
+
+    PlatformStatus status{};
+    std::memcpy(&status, frame.data, sizeof(PlatformStatus));
+    return status;
+}
+
+
 SysCom::SysCom(init::IContext& context)
     : m_logger(context.createLogger("SysCom"))
-    , m_subscriptions_counter(0)
     , m_proxy(context.getTransportProxy())
+    , m_command_queue(context)
 {
     RCLCPP_INFO(m_logger, "SysCom initialized");
 }
 
 void SysCom::work()
 {
-    if (m_subscriptions.empty())
+    auto [payload, cmd_id] = m_command_queue.pop();
+    if (payload.empty())
     {
-        return;
+        payload = codecs::serialize(create_next_heartbeat_frame());
     }
-    
-    std::vector<std::uint8_t> bytes = m_proxy.read(FRAME_SIZE);
-    if (bytes.empty())
+    else
     {
-        RCLCPP_ERROR(m_logger, "Error while receiving data!");
-        return;
+        payload = codecs::serialize(create_next_frame(payload, cmd_id));
     }
-    dispatch(bytes);
-}
-
-bool SysCom::send(const Request& msg)
-{
-    std::vector<std::uint8_t> bytes;
-    switch (msg.msg_id)
+    auto bytes = m_proxy.sendRead(payload);
+    if (codecs::frameCheck(bytes))
     {
-    case PLATFORM_SET_MOTOR_SPEED_REQ_ID:
-        bytes = codecs::PlatformSetMotorSpeedSerDes::serialize(msg.msg.set_motor_speed_req);
-        break;
-    case PLATFORM_SET_MOTOR_PWM_VALUE_REQ_ID:
-        bytes = codecs::PlatformSetMotorPwmValueSerDes::serialize(msg.msg.set_motor_pwm_value_req);
-        break;
-    case PLATFORM_POLL_STATUS_REQ_ID:
-        bytes = codecs::PlatformPollStatusSerDes::serialize(msg.msg.platform_poll_status_req);
-        break;
-    default:
-        RCLCPP_ERROR(m_logger, "Error while serializing message!");
-        return false;
-    };
-
-    if (not m_proxy.send(bytes))
-    {
-        RCLCPP_ERROR(m_logger, "Error while sendind data!");
-        return false;
+        const auto frame = codecs::deserialize(bytes);
+        handle_received_frame(frame);
     }
-
-    return true;
-}
-
-int SysCom::subscribe(MessageId msgId, const Callback& callback)
-{
-    return m_subscriptions.emplace(m_subscriptions_counter++, std::make_pair(msgId, callback)).first->first;
-}
-
-void SysCom::dispatch(const std::vector<std::uint8_t>& bytes)
-{
-    if (not codecs::frameCheck(bytes))
+    else
     {
         RCLCPP_ERROR(m_logger, "Error while checking frame!");
-        return;
     }
+}
 
-    Response response{};
-    response.msg_id = codecs::msgId(bytes);
-    RCLCPP_INFO(m_logger, "Received message id: %d", response.msg_id);
-    switch (response.msg_id)
+void SysCom::send(const Command& msg)
+{
+    m_command_queue.push(msg);
+}
+
+int SysCom::subscribeForStatus(const Callback& callback)
+{
+    return m_subscriptions.emplace(m_subscriptions_counter++, callback).first->first;
+}
+
+Frame SysCom::create_next_frame(const std::vector<std::uint8_t>& payload, std::uint8_t id)
+{
+    Frame frame;
+    frame.header = HEADER_BYTE;
+    frame.id = id;
+    std::memcpy(frame.data, payload.data(), payload.size());
+    frame.crc = 0;
+    return frame;
+}
+
+Frame SysCom::create_next_heartbeat_frame()
+{
+    //TODO: create heartbeat frame with correct payload
+    return create_next_frame(std::vector<std::uint8_t>(DATA_SIZE, 0), HEARTBEAT_MSG_ID);
+}
+
+void SysCom::handle_received_frame(const Frame& frame)
+{
+    switch (frame.id)
     {
-    case PLATFORM_SET_MOTOR_SPEED_RESP_ID:
-        response.msg.set_motor_speed_resp = codecs::deserialize<PlatformSetMotorSpeedResp>(bytes);
-        break;
-    case PLATFORM_SET_MOTOR_PWM_VALUE_RESP_ID:
-        response.msg.set_motor_pwm_value_resp = codecs::deserialize<PlatformSetMotorPwmValueResp>(bytes);
-        break;
-    case PLATFORM_POLL_STATUS_RESP_ID:
-        response.msg.poll_status_resp = codecs::deserialize<PlatformPollStatusResp>(bytes);
+    case PLATFORM_STATUS_MSG_ID:
+        {
+            auto status = get_status(frame);
+            for (const auto& callback : m_subscriptions | std::views::values)
+            {
+                callback(status);
+            }
+        }
         break;
     default:
-        RCLCPP_ERROR(m_logger, "Error while dispatching message!");
-        return;
-    };
-
-    for (const auto& subscription : m_subscriptions)
-    {
-        if (subscription.second.first != response.msg_id)
-        {
-            continue;
-        }
-        subscription.second.second(response);
+        RCLCPP_ERROR(m_logger, "Unknown message ID received: %d", frame.id);
     }
 }
 

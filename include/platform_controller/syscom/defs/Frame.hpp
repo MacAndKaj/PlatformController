@@ -12,6 +12,7 @@
 struct Frame
 {
     uint8_t header;
+    // TODO: add sequence number
     uint8_t id;
     uint8_t data[DATA_SIZE];
     uint8_t crc;

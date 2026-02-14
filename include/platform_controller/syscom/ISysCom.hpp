@@ -4,8 +4,7 @@
 #ifndef PLATFORM_CONTROLLER_SYSCOM_ISYSCOM_HPP_
 #define PLATFORM_CONTROLLER_SYSCOM_ISYSCOM_HPP_
 
-#include <platform_controller/syscom/Request.hpp>
-#include <platform_controller/syscom/Response.hpp>
+#include <platform_controller/syscom/Command.hpp>
 
 #include <cstdint>
 #include <functional>
@@ -14,7 +13,7 @@ namespace platform_controller::syscom
 {
 
 using MessageId = std::uint8_t;
-using Callback = std::function<void(const Response)>;
+using Callback = std::function<void(const PlatformStatus)>;
 
 class ISysCom
 {
@@ -27,17 +26,15 @@ public:
     virtual void work() = 0;
     /**
      * @brief Send message to the platform
-     * @param msg Message to send
-     * @return true if message was sent successfully, false otherwise
+     * @param cmd Message to send
      */
-    virtual bool send(const Request& msg) = 0;
+    virtual void send(const Command& cmd) = 0;
     /**
-     * @brief Subscribe to a message
-     * @param msgId Message ID to subscribe to
+     * @brief Subscribe to a message PlatformStatus
      * @param callback Callback function to be called when message is received
      * @return Subscription ID
      */
-    virtual int subscribe(MessageId msgId, const Callback& callback) = 0;
+    virtual int subscribeForStatus(const Callback& callback) = 0;
 };
 
 } // namespace platform_controller::syscom

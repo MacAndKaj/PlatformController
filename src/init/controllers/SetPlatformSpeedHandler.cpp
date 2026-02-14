@@ -4,9 +4,11 @@
 #include <platform_controller/init/controllers/SetPlatformSpeedHandler.hpp>
 
 #include <platform_controller/init/IContext.hpp>
-#include <platform_controller/syscom/Request.hpp>
+#include <platform_controller/syscom/Command.hpp>
 
 #include <cmath>
+
+#include "platform_controller/syscom/defs/MessageIds.hpp"
 
 namespace platform_controller::init::controllers
 {
@@ -23,9 +25,9 @@ SetPlatformSpeedHandler::SetPlatformSpeedHandler(IContext& context)
 void SetPlatformSpeedHandler::handle(const motoros_interfaces::msg::SetPlatformSpeed& msg)
 {
     RCLCPP_INFO(m_logger, "Received SetPlatformSpeed - %f[left] | %f[right]", msg.l_speed, msg.r_speed);
-    syscom::Request syscom_msg{};
+    syscom::Command syscom_msg{};
     auto& req = syscom_msg.msg.set_motor_speed_req;
-    syscom_msg.msg_id = PLATFORM_SET_MOTOR_SPEED_REQ_ID;
+    syscom_msg.msg_id = CMD_SET_MOTOR_SPEED_ID;
 
     float integer_part;
     float float_part = std::modf(msg.l_speed, &integer_part);
@@ -36,10 +38,7 @@ void SetPlatformSpeedHandler::handle(const motoros_interfaces::msg::SetPlatformS
     req.rSpeedF = static_cast<std::uint8_t>(std::fabs(std::round(float_part*100))); 
     req.rSpeedI = static_cast<std::int8_t>(integer_part); 
 
-    if (not m_syscom.send(syscom_msg))
-    {
-        RCLCPP_ERROR(m_logger, "Error while sendind data to platform!");
-    }
+    m_syscom.send(syscom_msg);
     RCLCPP_INFO(m_logger, "SetPlatformSpeed sent.");
     // RCLCPP_DEBUG(m_logger, "SetPlatformSpeed sent.");
 }

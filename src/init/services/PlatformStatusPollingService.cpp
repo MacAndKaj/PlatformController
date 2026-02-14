@@ -4,7 +4,6 @@
 #include <platform_controller/init/services/PlatformStatusPollingService.hpp>
 
 #include <platform_controller/init/IContext.hpp>
-#include <platform_controller/roscom/IRosComSender.hpp>
 #include <platform_controller/roscom/PublisherBuilder.hpp>
 
 #include <cmath>
@@ -17,14 +16,6 @@ static constexpr int MDC_LOG_BIT = 2;
 static constexpr int MDC_SYSCOM_BIT = 3;
 static constexpr int MDC_MONITORING_BIT = 4;
 
-struct PlatformStatusPollingServiceImpl
-{
-    syscom::Request request;
-    int m_syscom_subscription_id;
-    int m_timer_id;
-    std::vector<int> m_status_bits;
-    std::shared_ptr<roscom::IRosComSender> m_roscom_sender;
-};
 
 std::vector<int> handleStatusBits(const mi_services::PlatformStatusPolling::Request& req, uint8_t& status_bits)
 {
@@ -53,98 +44,61 @@ std::vector<int> handleStatusBits(const mi_services::PlatformStatusPolling::Requ
 PlatformStatusPollingService::PlatformStatusPollingService(IContext& context)
     : m_logger(context.createLogger("PlatformStatusPollingService"))
     , m_timers_manager(context.getTimersManager())
-    , m_service(context.getRosCom().createServiceForPollPlatformStatus(
-        std::bind(&PlatformStatusPollingService::handle, this, std::placeholders::_1, std::placeholders::_2)))
+    , m_service(context.getRosCom().createServiceForPollPlatformStatus([this](auto req, auto resp){handle(req, resp);}))
     , m_syscom(context.getSysCom())
     , m_roscom(context.getRosCom())
+    , m_status_pub_timer_id (-1)
 {
     RCLCPP_INFO(m_logger, "PlatformStatusPollingService waiting for messages");
 }
 
 PlatformStatusPollingService::~PlatformStatusPollingService()
 {
-    // Stop timers if impl is initialized
-    if (m_impl)
-    {
-        RCLCPP_INFO(m_logger, "Stopping PlatformStatusPollingService");
-        m_timers_manager.removeTimer(m_impl->m_timer_id);
-        m_impl.reset();
-    }
+    RCLCPP_INFO(m_logger, "PlatformStatusPollingService destructed");
 }
 
 void PlatformStatusPollingService::handle(std::shared_ptr<mi_services::PlatformStatusPolling::Request> req,
-    std::shared_ptr<mi_services::PlatformStatusPolling::Response> resp)
+                                          std::shared_ptr<mi_services::PlatformStatusPolling::Response> resp)
 {
     using StatusType = mi_services::PlatformStatusPolling::Response::_response_status_type;
     RCLCPP_INFO(m_logger, "Received PlatformStatusPolling request");
     resp->response_status = StatusType();
-
-    if (m_impl)
-    {
-        RCLCPP_ERROR(m_logger, "Service is already initialized");
-        resp->response_status.status = StatusType::GENERIC_STATUS_REJECT;
-        return;
-    }
-
-    syscom::Request request{};
-    auto& polling_req = request.msg.platform_poll_status_req;
-    request.msg_id = PLATFORM_POLL_STATUS_REQ_ID;
-
-
-    auto syscom_request_sender = [this] () { pollStatus(); };
-    auto syscom_response_handler = [this] (const auto& msg) { handleResponse(msg); };
-
     roscom::PublisherBuilder<motoros_interfaces::msg::PlatformStatus> builder{
         "platform_controller/platform_status"
     };
 
-    polling_req.statusSet = 0;
-    m_impl = std::make_shared<PlatformStatusPollingServiceImpl>(request,
-        m_syscom.subscribe(PLATFORM_POLL_STATUS_RESP_ID, syscom_response_handler),
-        m_timers_manager.startOneShotTimer(std::chrono::milliseconds(req->period), syscom_request_sender),
-        handleStatusBits(*req, polling_req.statusSet),
-        m_roscom.createSender(builder)
-    );
+    m_roscom_sender = m_roscom.createSender(builder);
+    m_status_pub_timer_id = m_timers_manager.startOneShotTimer(std::chrono::milliseconds(req->period), [this]{handleTimer();});
+    m_syscom.subscribeForStatus([this](auto status) { handleStatus(status); });
 
     RCLCPP_INFO(m_logger, "PlatformStatusPollingService started correctly with period: %d ms", req->period);
     resp->response_status.status = StatusType::GENERIC_STATUS_OK;
 }
 
-void PlatformStatusPollingService::pollStatus()
+void PlatformStatusPollingService::handleStatus(const PlatformStatus status)
 {
-    if (m_impl)
-    {
-        RCLCPP_INFO(m_logger, "Polling platform status");
-        m_syscom.send(m_impl->request);
-    }
+    m_current_status = std::move(status);
 }
 
-void PlatformStatusPollingService::handleResponse(const syscom::Response& msg)
+void PlatformStatusPollingService::handleTimer() const
 {
-    if (msg.msg_id != PLATFORM_POLL_STATUS_RESP_ID)
-    {
-        RCLCPP_ERROR(m_logger, "Received unexpected message ID: %d", msg.msg_id);
-        return;
-    }
-
-    const auto& resp = msg.msg.poll_status_resp;
     motoros_interfaces::msg::PlatformStatus status{};
-    status.l_speed = static_cast<double>(resp.lSpeedI) + (static_cast<double>(resp.lSpeedF) / 100.0);
-    status.r_speed = static_cast<double>(resp.rSpeedI) + (static_cast<double>(resp.rSpeedF) / 100.0);
+    status.l_speed = static_cast<double>(m_current_status.l_speed_i) + (static_cast<double>(m_current_status.l_speed_f) / 100.0);
+    status.r_speed = static_cast<double>(m_current_status.r_speed_i) + (static_cast<double>(m_current_status.r_speed_f) / 100.0);
 
     const roscom::PubMsg pub_msg = status;
-    status.mdc_controller_status.status = (resp.moduleStatus & 1 << MDC_CONTROLLER_BIT)
+    status.mdc_controller_status.status = (m_current_status.system_state & 1 << MDC_CONTROLLER_BIT)
         ? motoros_interfaces::msg::GenericStatus::GENERIC_STATUS_OK
         : motoros_interfaces::msg::GenericStatus::GENERIC_STATUS_UNKNOWN_ERROR;
-    status.mdc_feedback_status.status = (resp.moduleStatus & 1 << MDC_FEEDBACK_BIT)
+    status.mdc_feedback_status.status = (m_current_status.system_state & 1 << MDC_FEEDBACK_BIT)
         ? motoros_interfaces::msg::GenericStatus::GENERIC_STATUS_OK
         : motoros_interfaces::msg::GenericStatus::GENERIC_STATUS_UNKNOWN_ERROR;
-    status.mdc_monitoring_status.status = (resp.moduleStatus & 1 << MDC_MONITORING_BIT)
+    status.mdc_monitoring_status.status = (m_current_status.system_state & 1 << MDC_MONITORING_BIT)
         ? motoros_interfaces::msg::GenericStatus::GENERIC_STATUS_OK
         : motoros_interfaces::msg::GenericStatus::GENERIC_STATUS_UNKNOWN_ERROR;
-    RCLCPP_INFO(m_logger, "Sending PlatformStatus message");
-    m_impl->m_roscom_sender->send(pub_msg);
-    m_timers_manager.restartTimer(m_impl->m_timer_id);
+
+    m_roscom_sender->send(pub_msg);
+    m_timers_manager.restartTimer(m_status_pub_timer_id);
 }
 
 } // namespace platform_controller::init::services

@@ -8,10 +8,9 @@
 
 #include <platform_controller/init/IContext.hpp>
 #include <platform_controller/transport/ITransportProxy.hpp>
+#include <platform_controller/syscom/CommandQueue.hpp>
+#include <platform_controller/syscom/defs/Frame.hpp>
 
-#include <mutex>
-#include <unordered_map>
-#include <utility>
 
 namespace platform_controller::syscom
 {
@@ -22,17 +21,20 @@ public:
     explicit SysCom(init::IContext& context);
     virtual ~SysCom() = default;
     void work() override;
-    bool send(const Request& msg) override;    
-    int subscribe(MessageId msgId, const Callback& callback);
+    void send(const Command& msg) override;
+    int subscribeForStatus(const Callback& callback) override;
+
 private:
-    void dispatch(const std::vector<std::uint8_t>& bytes);
+    Frame create_next_frame(const std::vector<std::uint8_t>& payload, std::uint8_t id);
+    Frame create_next_heartbeat_frame();
+    void handle_received_frame(const Frame& frame);
 
     rclcpp::Logger m_logger;
     std::uint64_t m_subscriptions_counter;
 
-    using MsgSubscription = std::pair<MessageId, Callback>;
-    std::unordered_map<std::uint64_t, MsgSubscription> m_subscriptions;
+    std::unordered_map<std::uint64_t, Callback> m_subscriptions;
     transport::ITransportProxy& m_proxy;
+    CommandQueue m_command_queue;
 };
 
 } // namespace platform_controller::syscom

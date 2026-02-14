@@ -15,6 +15,7 @@ class ITransportProxy
 public:
     virtual ~ITransportProxy() = default;
     virtual bool send(const std::vector<std::uint8_t>& data) = 0;
+    virtual std::vector<std::uint8_t> sendRead(const std::vector<std::uint8_t>& data) = 0;
     virtual std::vector<std::uint8_t> read() = 0;
     virtual std::vector<std::uint8_t> read(unsigned int nbytes) = 0;
 };

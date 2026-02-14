@@ -26,7 +26,7 @@ public:
     void setup();
 
 private:
-    void slaveMonitoring();
+    void syscomMasterWork();
 
     rclcpp::Logger m_node_logger;
     std::shared_ptr<IContext> m_context;

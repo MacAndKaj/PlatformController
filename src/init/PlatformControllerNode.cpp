@@ -40,7 +40,6 @@ PlatformControllerNode::~PlatformControllerNode()
     RCLCPP_INFO(m_node_logger, "Node destructed");
 }
 
-
 void PlatformControllerNode::setContext(std::shared_ptr<IContext> context)
 {
     m_context = std::move(context);
@@ -63,27 +62,26 @@ void PlatformControllerNode::setup()
     m_services.emplace_back(std::make_shared<services::PlatformStatusPollingService>(*m_context));
 
     using namespace std::chrono_literals;
-    constexpr std::chrono::milliseconds PERIOD = 10ms;
+    constexpr auto PERIOD = 10ms;
 
-    m_node_timer = create_wall_timer(PERIOD, [this](){
-        try
-        {
-            slaveMonitoring();
-        }
-        catch(const std::exception& e)
-        {
-            RCLCPP_ERROR(m_node_logger, e.what());
-        }
-        catch(...)
-        {
-            RCLCPP_ERROR(m_node_logger, "Unknown exception catched");
-        }
-    }, m_main_callback_group);
+    m_node_timer = create_wall_timer(PERIOD, [this](){ syscomMasterWork(); }, m_main_callback_group);
 }
 
-void PlatformControllerNode::slaveMonitoring()
+void PlatformControllerNode::syscomMasterWork()
 {
-    m_context->getSysCom().work();
+    try
+    {
+        m_context->getSysCom().work();
+    }
+    catch(const std::exception& e)
+    {
+        RCLCPP_ERROR(m_node_logger, e.what());
+    }
+    catch(...)
+    {
+        RCLCPP_ERROR(m_node_logger, "Unknown exception catched");
+    }
+
 }
 
 } // namespace platform_controller::init

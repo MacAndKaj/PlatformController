@@ -8,6 +8,7 @@
 
 #include <platform_controller/init/IContext.hpp>
 #include <platform_controller/init/ITimersManager.hpp>
+#include <platform_controller/roscom/IRosComSender.hpp>
 #include <platform_controller/syscom/ISysCom.hpp>
 
 
@@ -26,8 +27,8 @@ public:
 protected:
     void handle(std::shared_ptr<mi_services::PlatformStatusPolling::Request> req,
                 std::shared_ptr<mi_services::PlatformStatusPolling::Response> resp);
-    void handleResponse(const syscom::Response& msg);
-    void pollStatus();
+    void handleStatus(const PlatformStatus status);
+    void handleTimer() const;
 
 private:
     rclcpp::Logger m_logger;
@@ -35,7 +36,9 @@ private:
     std::shared_ptr<rclcpp::ServiceBase> m_service;
     syscom::ISysCom& m_syscom;
     roscom::IRosCom& m_roscom;
-    std::shared_ptr<PlatformStatusPollingServiceImpl> m_impl;
+    int m_status_pub_timer_id;
+    std::shared_ptr<roscom::IRosComSender> m_roscom_sender;
+    PlatformStatus m_current_status{};
 };
 
 } // namespace platform_controller::init::services

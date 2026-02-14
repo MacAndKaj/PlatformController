@@ -6,8 +6,6 @@
 
 #include <stdint.h>
 
-#include "MessageIds.hpp"
-
 enum Status
 {
     NoError,
@@ -27,12 +25,6 @@ struct PlatformSetMotorSpeedReq
 };
 typedef struct PlatformSetMotorSpeedReq PlatformSetMotorSpeedReq;
 
-struct PlatformSetMotorSpeedResp
-{
-    enum Status status;
-};
-typedef struct PlatformSetMotorSpeedResp PlatformSetMotorSpeedResp;
-
 /*
  * ONLY FOR DEBUGGING PURPOSES
  * lPwmValue - value of PWM duty for left motor
@@ -50,15 +42,6 @@ struct PlatformSetMotorPwmValueReq
 typedef struct PlatformSetMotorPwmValueReq PlatformSetMotorPwmValueReq;
 
 /*
- * status - status of setting the value
- */
-struct PlatformSetMotorPwmValueResp
-{
-    enum Status status;
-};
-typedef struct PlatformSetMotorPwmValueResp PlatformSetMotorPwmValueResp;
-
-/*
  * statusSet - bitset to request specific statuses
  *      bits:
  *           0 - speed
@@ -73,17 +56,22 @@ typedef struct PlatformPollStatusReq PlatformPollStatusReq;
 /*
  * lSpeedF/rSpeedF  - fraction part of speed values - 0.xx
  * lSpeedI/rSpeedI  - integer part of speed values - xxx.0
- * moduleStatus     - bitset with modules Status (1-OK, 0-NOK)
+ * system_state     - bitset with modules Status (1-OK, 0-NOK)
  *                  bits: 0...7 - controller|feedback|log|syscom|[4...7 Not used]
+ * fault_flags
  */
-struct PlatformPollStatusResp
+typedef struct
 {
-    int8_t lSpeedI;
-    uint8_t lSpeedF; 
-    int8_t rSpeedI;
-    uint8_t rSpeedF;
-    uint8_t moduleStatus;
-};
-typedef struct PlatformPollStatusResp PlatformPollStatusResp;
+    int8_t l_speed_i;
+    uint8_t l_speed_f;
+    int8_t r_speed_i;
+    uint8_t r_speed_f;
+    uint16_t system_state;   // bitmask
+    uint16_t fault_flags;
+
+    uint16_t  last_cmd_seq_id;
+    uint8_t  last_cmd_status; // CommandStatus
+    uint8_t  reserved;
+} PlatformStatus;
 
 #endif // PLATFORM_CONTROLLER_SYSCOM_DEFS_MESSAGES_HPP_
