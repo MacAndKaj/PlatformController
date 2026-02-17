@@ -43,6 +43,7 @@ private:
     std::unique_ptr<transport::ITransportProxy> m_logs_proxy;
     std::unique_ptr<gpio::IGpioManager> m_gpio_manager;
     std::unique_ptr<ITimersManager> m_timers_manager;
+    bool m_syscom_debug;
 };
 
 } // namespace platform_controller::init

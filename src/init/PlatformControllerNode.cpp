@@ -17,6 +17,7 @@ namespace platform_controller::init
 static const std::map<std::string, rclcpp::ParameterType> ARGUMENTS = {
     {"spi_device_name", rclcpp::ParameterType::PARAMETER_STRING},
     {"gpio_device_name", rclcpp::ParameterType::PARAMETER_STRING},
+    {"syscom_debug", rclcpp::ParameterType::PARAMETER_BOOL},
 };
 
 PlatformControllerNode::PlatformControllerNode(const std::string& node_name)

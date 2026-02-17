@@ -31,9 +31,11 @@ PlatformStatus get_status(const Frame& frame)
 
 
 SysCom::SysCom(init::IContext& context)
-    : m_logger(context.createLogger("SysCom"))
+    : m_debug_mode(false)
+    , m_logger(context.createLogger("SysCom"))
     , m_proxy(context.getTransportProxy())
     , m_command_queue(context)
+    , m_connection_status(ConnectionStatus::WAITING_FOR_CONNECTION)
 {
     RCLCPP_INFO(m_logger, "SysCom initialized");
 }
@@ -50,15 +52,28 @@ void SysCom::work()
         payload = codecs::serialize(create_next_frame(payload, cmd_id));
     }
     auto bytes = m_proxy.sendRead(payload);
-    if (codecs::frameCheck(bytes))
+    if (!codecs::frameCheck(bytes))
     {
-        const auto frame = codecs::deserialize(bytes);
-        handle_received_frame(frame);
+        if (not m_debug_mode)
+        {
+            RCLCPP_ERROR(m_logger, "Received frame with invalid format");
+        }
+        m_connection_status = ConnectionStatus::CONNECTION_LOST;
+        return;
     }
-    else
+
+    const auto frame = codecs::deserialize(bytes);
+    if (!codecs::crcCheck(frame))
     {
-        RCLCPP_ERROR(m_logger, "Error while checking frame!");
+        if (not m_debug_mode)
+        {
+            RCLCPP_ERROR(m_logger, "Received frame with invalid CRC: %02x", frame.crc);
+        }
+        return;
     }
+
+    m_connection_status = ConnectionStatus::CONNECTED;
+    handle_received_frame(frame);
 }
 
 void SysCom::send(const Command& msg)
@@ -71,13 +86,22 @@ int SysCom::subscribeForStatus(const Callback& callback)
     return m_subscriptions.emplace(m_subscriptions_counter++, callback).first->first;
 }
 
+void SysCom::setDebug(bool enabled)
+{
+    RCLCPP_INFO(m_logger, "Setting debug mode to: %s", enabled ? "enabled" : "disabled");
+    m_debug_mode = enabled;
+}
+
 Frame SysCom::create_next_frame(const std::vector<std::uint8_t>& payload, std::uint8_t id)
 {
     Frame frame;
     frame.header = HEADER_BYTE;
     frame.id = id;
     std::memcpy(frame.data, payload.data(), payload.size());
-    frame.crc = 0;
+    if (not codecs::addCrc(frame))
+    {
+        RCLCPP_ERROR(m_logger, "Failed to calculate CRC for frame with ID: %02x", id);
+    }
     return frame;
 }
 

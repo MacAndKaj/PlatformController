@@ -18,6 +18,7 @@ namespace platform_controller::init
 Context::Context(rclcpp::Node& current_node)
     : m_current_node(current_node)
     , m_timers_manager(std::make_unique<TimersManager>(current_node))
+    , m_syscom_debug(false)
 {
 }
 
@@ -35,6 +36,7 @@ roscom::IRosCom& Context::getRosCom()
 void Context::setSysCom(std::unique_ptr<syscom::ISysCom> syscom)
 {
     m_syscom = std::move(syscom);
+    m_syscom->setDebug(m_syscom_debug);
 }
 
 syscom::ISysCom& Context::getSysCom()
@@ -47,6 +49,11 @@ void Context::setup(const std::vector<rclcpp::Parameter>& parameters)
 {
     for (const auto& param : parameters)
     {
+        if (param.get_name() == "syscom_debug")
+        {
+            m_syscom_debug = param.as_bool();
+        }
+
         if (param.get_name() == "spi_device_name")
         {
             RCLCPP_INFO(m_current_node.get_logger(), "Creating SpiProxy");

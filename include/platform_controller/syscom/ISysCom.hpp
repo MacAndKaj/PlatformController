@@ -35,6 +35,12 @@ public:
      * @return Subscription ID
      */
     virtual int subscribeForStatus(const Callback& callback) = 0;
+
+    /**
+     *  @brief Set syscom debug mode - ignores some communication errors and prints more logs
+     * @param enabled boolean value indicating whether debug mode should be enabled or not
+     */
+    virtual void setDebug(bool enabled) = 0;
 };
 
 } // namespace platform_controller::syscom
