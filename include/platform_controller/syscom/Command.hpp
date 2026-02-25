@@ -14,7 +14,6 @@ struct Command
     union {
         PlatformSetMotorSpeedReq set_motor_speed_req;
         PlatformSetMotorPwmValueReq set_motor_pwm_value_req;
-        PlatformPollStatusReq platform_poll_status_req;
     } msg;
     int msg_id;
 };

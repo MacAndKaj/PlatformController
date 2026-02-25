@@ -22,8 +22,7 @@ namespace platform_controller::gpio
 
 gpio_v2_line_config createConfig(const GpioConfig& in)
 {
-    gpio_v2_line_config out;
-    std::memset(&out, 0, sizeof(out));
+    gpio_v2_line_config out = {};
     out.flags = (in.inout == GpioInOut::INPUT) ? GPIO_V2_LINE_FLAG_INPUT : GPIO_V2_LINE_FLAG_OUTPUT;
 
     for (const auto& mode : in.modes)
@@ -83,8 +82,7 @@ std::string requestToString(const struct gpio_v2_line_request& req)
 GpioManager::GpioManager(init::IContext& context,
     std::shared_ptr<ChipInfo> gpio_chip)
     : m_logger(context.createLogger("GpioManager|" + gpio_chip->chip_dev_name))
-    , m_chip_fd(-1)
-    , m_gpio_chip_info(std::move(gpio_chip))
+      , m_gpio_chip_info(std::move(gpio_chip))
 {
     m_chip_fd = open(m_gpio_chip_info->chip_dev_name.c_str(), O_RDWR);
     if (m_chip_fd < 0)
@@ -113,10 +111,8 @@ unsigned int GpioManager::setupLines(const std::vector<std::string>& lines, cons
 {   
     std::string consumer = std::string{m_logger.get_name()} + "|" + config_blueprint.consumer_name;
 
-    struct gpio_v2_line_request req;
-    std::memset(&req, 0, sizeof(req));
+    gpio_v2_line_request req = {};
     std::strncpy(req.consumer, consumer.c_str(), GPIO_MAX_NAME_SIZE);
-    req.fd = m_chip_fd;
     req.config = createConfig(config_blueprint);
     req.num_lines = lines.size();
 
@@ -125,8 +121,8 @@ unsigned int GpioManager::setupLines(const std::vector<std::string>& lines, cons
         req.offsets[i] = m_gpio_chip_info->offsets.at(lines[i]);
     }
 
-    int lfd = ioctl(m_chip_fd, GPIO_V2_GET_LINE_IOCTL, &req);
-    if (lfd < 0)
+    int status = ioctl(m_chip_fd, GPIO_V2_GET_LINE_IOCTL, &req);
+    if (status < 0)
     {
         
         int err_status = errno;
@@ -138,8 +134,23 @@ unsigned int GpioManager::setupLines(const std::vector<std::string>& lines, cons
         RCLCPP_ERROR(m_logger, requestToString(req).c_str());
         throw std::runtime_error("Line handle request error: ");
     }
+    std::stringstream str;
+    str << "Lines: ";
+    for (const auto& line : lines)
+    {
+        str << line << " ";
+    }
+    str << "set up successfully for: " << req.fd;
+    RCLCPP_INFO(m_logger, str.str().c_str());
     
-    m_line_fds.emplace_back(lfd);
+    m_line_fds.emplace_back(req.fd);
+    // Build and store mapping from line name to index within this handle (0..num_lines-1)
+    std::unordered_map<std::string, unsigned int> index_map;
+    for (size_t i = 0; i < lines.size(); ++i)
+    {
+        index_map.emplace(lines[i], static_cast<unsigned int>(i));
+    }
+    m_line_index_map.emplace_back(std::move(index_map));
     return m_line_fds.size() - 1;
 }
 
@@ -174,6 +185,38 @@ bool GpioManager::eventOccured(const EventExpectation& expectation)
     }
     
     return false;   
+}
+
+void GpioManager::setLineValue(unsigned consumer_id, const std::vector<LineState>& lines_with_state)
+{
+    const int lfd = m_line_fds.at(consumer_id);
+
+    gpio_v2_line_values values{};
+    // Use handle-local indices (0..num_lines-1) in values.bits/mask (required by v2 ioctl)
+    const auto & index_map = m_line_index_map.at(consumer_id);
+    for (const auto& [line_name, state] : lines_with_state)
+    {
+        unsigned int idx = index_map.at(line_name);
+        RCLCPP_INFO(m_logger, "Setting line %s (idx=%u) to state %s", line_name.c_str(), idx, (state == GpioState::ACTIVE) ? "ACTIVE" : "INACTIVE");
+        const auto state_bit = (state == GpioState::ACTIVE) ? 1ULL : 0ULL;
+        values.bits |= (state_bit << idx);
+        values.mask |= (1ULL << idx);
+    }
+
+    RCLCPP_INFO(m_logger, "About to ioctl set values for fd=%d bits=0x%016llx mask=0x%016llx", lfd, (unsigned long long)values.bits, (unsigned long long)values.mask);
+
+    if (const int status = ioctl(lfd, GPIO_V2_LINE_SET_VALUES_IOCTL, &values); status < 0)
+    {
+        const int err_status = errno;
+        std::stringstream str;
+        str << "Call ioctl(GPIO_V2_LINE_SET_VALUES_IOCTL) for "
+            << lfd
+            << " failed with errno: ("
+            << err_status << ") "
+            << std::strerror(err_status) << std::endl;
+        RCLCPP_ERROR(m_logger, str.str().c_str());
+        throw std::runtime_error("Setting line value error");
+    }
 }
 
 } // namespace platform_controller::gpio

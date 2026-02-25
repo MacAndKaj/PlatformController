@@ -16,7 +16,7 @@ namespace platform_controller::gpio::rpi3bplus
     The GPIO chip 0 has 54 lines, the GPIO chip 1 has 7 lines.
 */
 
-static const std::unordered_map<std::string, LineOffset> GpioChip0Offsets = {
+static const std::unordered_map<std::string, LineOffset> GpioChip0LinesOffsets = {
     {"ID_SDA", 0},
     {"ID_SCL", 1},
     {"SDA1", 2},
@@ -73,7 +73,7 @@ static const std::unordered_map<std::string, LineOffset> GpioChip0Offsets = {
     {"SD_DATA3_R", 53}
 };
 
-static const std::unordered_map<std::string, LineOffset> GpioChip1Offsets = {
+static const std::unordered_map<std::string, LineOffset> GpioChip1LinesOffsets = {
     {"BT_ON", 0},
     {"WL_ON", 1},
     {"PWR_LED_R", 2},
@@ -83,19 +83,19 @@ static const std::unordered_map<std::string, LineOffset> GpioChip1Offsets = {
     {"CAM_GPIO1", 6}
 };
 
-auto buildGpioChip0Info()
+inline auto buildGpioChip0Info()
 {
     return  std::make_shared<ChipInfo>(
         "/dev/gpiochip0",
-        GpioChip0Offsets
+        GpioChip0LinesOffsets
     );
 }
 
-auto buildGpioChip1Info()
+inline auto buildGpioChip1Info()
 {
     return std::make_shared<ChipInfo>(
         "/dev/gpiochip1",
-        GpioChip1Offsets
+        GpioChip0LinesOffsets
     );
 }
 

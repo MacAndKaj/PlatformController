@@ -57,6 +57,14 @@ struct EventExpectation
     const std::string & line_name;
 };
 
+enum class GpioState
+{
+    ACTIVE,
+    INACTIVE,
+};
+
+using LineState = std::pair<std::string, GpioState>;
+
 } // namespace platform_controller::gpio
 
 #endif // PLATFORM_CONTROLLER_GPIO_DEFS_HPP_

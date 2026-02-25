@@ -43,16 +43,11 @@ inline bool crcCheck(const Frame& frame)
     return crc8.checksum() == frame.crc;
 }
 
-inline bool addCrc(Frame& frame)
+inline void addCrc(Frame& frame)
 {
     crc_8_smbus crc8;
     crc8.process_bytes(&frame, sizeof(frame) - sizeof(frame.crc));
     frame.crc = crc8.checksum();
-    if (frame.crc == 0)
-    {
-        return false;
-    }
-    return true;
 }
 
 inline uint8_t msgId(const std::vector<std::uint8_t>& bytes)

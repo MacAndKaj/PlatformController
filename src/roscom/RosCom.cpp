@@ -37,7 +37,7 @@ Subscriber RosCom::subscribeForSetPlatformPwmValue(
     const std::function<void(const mi_messages::SetPlatformPwmValue&)>& callback)
 {
     return m_current_node.create_subscription<mi_messages::SetPlatformPwmValue>(
-        "motur_head/set_platform_pwm_value", 10, callback, m_subscriptions_options);
+        "motur_head/set_platform_pwm_value", rclcpp::QoS{2}.best_effort(), callback, m_subscriptions_options);
 }
 
 

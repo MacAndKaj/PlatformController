@@ -4,6 +4,8 @@
 
 #include <platform_controller/init/PlatformControllerNode.hpp>
 
+#include <platform_controller/gpio/IGpioManager.hpp>
+#include <platform_controller/gpio/Rpi3BPlusGpioChips.hpp>
 #include <platform_controller/init/controllers/SetPlatformSpeedHandler.hpp>
 #include <platform_controller/init/controllers/SetPlatformPwmValueHandler.hpp>
 #include <platform_controller/init/services/PlatformStatusPollingService.hpp>
@@ -62,6 +64,16 @@ void PlatformControllerNode::setup()
 
     m_services.emplace_back(std::make_shared<services::PlatformStatusPollingService>(*m_context));
 
+    auto& gpio_manager = m_context->getGpioManager();
+    auto config = gpio::GpioConfig{
+        .consumer_name = "PlatformControllerNode",
+        .inout = gpio::GpioInOut::OUTPUT,
+        .output_level = gpio::GpioOutputActiveLevel::LOW,
+        .modes = {}
+    };
+    m_gpio_consumer_id = gpio_manager.setupLines({"GPIO21"}, config);
+    resetMotorDriverCard();
+
     using namespace std::chrono_literals;
     constexpr auto PERIOD = 10ms;
 
@@ -85,4 +97,25 @@ void PlatformControllerNode::syscomMasterWork()
 
 }
 
+void PlatformControllerNode::resetMotorDriverCard()
+{
+    if (not m_gpio_consumer_id)
+    {
+        RCLCPP_ERROR(m_node_logger, "GPIO consumer not initialized - MDC reset not possible");
+        throw std::runtime_error("GPIO consumer not initialized");
+    }
+    auto& gpio_manager = m_context->getGpioManager();
+    gpio::LineState reset_line_state{"GPIO21", gpio::GpioState::ACTIVE};
+
+    RCLCPP_INFO(m_node_logger, "Performing MDC reset");
+    gpio_manager.setLineValue(*m_gpio_consumer_id, {reset_line_state});
+
+    using namespace std::chrono_literals;
+    rclcpp::sleep_for(1ms);
+
+    reset_line_state.second = gpio::GpioState::INACTIVE;
+    gpio_manager.setLineValue(*m_gpio_consumer_id, {reset_line_state});
+
+    RCLCPP_INFO(m_node_logger, "MDC reset done");
+}
 } // namespace platform_controller::init

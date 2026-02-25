@@ -13,7 +13,6 @@ file(GLOB SOURCES
     ${HEADERS_DIR}/platform_controller/init/IContext.hpp
     ${HEADERS_DIR}/platform_controller/init/ITimersManager.hpp
     ${HEADERS_DIR}/platform_controller/init/TimersManager.hpp
-    ${HEADERS_DIR}/platform_controller/init/UserCommunicationNode.hpp
 
     ${HEADERS_DIR}/platform_controller/controllers/IHandler.hpp
     ${HEADERS_DIR}/platform_controller/controllers/SetPlatformPwmValueHandler.hpp
@@ -26,7 +25,6 @@ file(GLOB SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/MdcLoggingNode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PlatformControllerNode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TimersManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/UserCommunicationNode.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/controllers/SetPlatformPwmValueHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/controllers/SetPlatformSpeedHandler.cpp

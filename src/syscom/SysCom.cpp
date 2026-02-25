@@ -51,8 +51,8 @@ void SysCom::work()
     {
         payload = codecs::serialize(create_next_frame(payload, cmd_id));
     }
-    auto bytes = m_proxy.sendRead(payload);
-    if (!codecs::frameCheck(bytes))
+    const auto bytes = m_proxy.sendRead(payload);
+    if (not codecs::frameCheck(bytes))
     {
         if (not m_debug_mode)
         {
@@ -63,7 +63,7 @@ void SysCom::work()
     }
 
     const auto frame = codecs::deserialize(bytes);
-    if (!codecs::crcCheck(frame))
+    if (not codecs::crcCheck(frame))
     {
         if (not m_debug_mode)
         {
@@ -92,20 +92,17 @@ void SysCom::setDebug(bool enabled)
     m_debug_mode = enabled;
 }
 
-Frame SysCom::create_next_frame(const std::vector<std::uint8_t>& payload, std::uint8_t id)
+Frame SysCom::create_next_frame(const std::vector<std::uint8_t>& payload, const std::uint8_t id) const
 {
     Frame frame;
     frame.header = HEADER_BYTE;
     frame.id = id;
     std::memcpy(frame.data, payload.data(), payload.size());
-    if (not codecs::addCrc(frame))
-    {
-        RCLCPP_ERROR(m_logger, "Failed to calculate CRC for frame with ID: %02x", id);
-    }
+    codecs::addCrc(frame);
     return frame;
 }
 
-Frame SysCom::create_next_heartbeat_frame()
+Frame SysCom::create_next_heartbeat_frame() const
 {
     //TODO: create heartbeat frame with correct payload
     return create_next_frame(std::vector<std::uint8_t>(DATA_SIZE, 0), HEARTBEAT_MSG_ID);

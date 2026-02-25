@@ -12,6 +12,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace platform_controller::init
@@ -27,6 +28,7 @@ public:
 
 private:
     void syscomMasterWork();
+    void resetMotorDriverCard();
 
     rclcpp::Logger m_node_logger;
     std::shared_ptr<IContext> m_context;
@@ -37,6 +39,7 @@ private:
     rclcpp::CallbackGroup::SharedPtr m_controllers_callback_group;
     rclcpp::CallbackGroup::SharedPtr m_services_callback_group;
     rclcpp::CallbackGroup::SharedPtr m_timers_callback_group;
+    std::optional<unsigned int> m_gpio_consumer_id;
 };
 
 } // namespace platform_controller::init

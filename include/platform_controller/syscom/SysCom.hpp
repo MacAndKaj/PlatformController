@@ -27,8 +27,8 @@ public:
     void setDebug(bool enabled) override;
 
 private:
-    Frame create_next_frame(const std::vector<std::uint8_t>& payload, std::uint8_t id);
-    Frame create_next_heartbeat_frame();
+    Frame create_next_frame(const std::vector<std::uint8_t>& payload, std::uint8_t id) const;
+    Frame create_next_heartbeat_frame() const;
     void handle_received_frame(const Frame& frame);
 
     bool m_debug_mode;
