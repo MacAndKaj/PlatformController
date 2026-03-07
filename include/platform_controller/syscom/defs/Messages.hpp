@@ -66,6 +66,11 @@ typedef struct
     uint8_t l_speed_f;
     int8_t r_speed_i;
     uint8_t r_speed_f;
+
+    int16_t acc_x;
+    int16_t acc_y;
+    int16_t gyro_z;
+
     uint16_t system_state;   // bitmask
     uint16_t fault_flags;
 

@@ -82,6 +82,7 @@ void PlatformStatusPollingService::handleStatus(const PlatformStatus status)
 
 void PlatformStatusPollingService::handleTimer() const
 {
+    RCLCPP_INFO(m_logger, "IMU data: acc_x: %d, acc_y: %d, gyro_z: %d", m_current_status.acc_x/1000, m_current_status.acc_y/1000, m_current_status.gyro_z/1000);
     motoros_interfaces::msg::PlatformStatus status{};
     status.l_speed = static_cast<double>(m_current_status.l_speed_i) + (static_cast<double>(m_current_status.l_speed_f) / 100.0);
     status.r_speed = static_cast<double>(m_current_status.r_speed_i) + (static_cast<double>(m_current_status.r_speed_f) / 100.0);
